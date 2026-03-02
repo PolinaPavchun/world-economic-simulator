@@ -22,5 +22,3 @@ World Economic Simulator — это глобальный симулятор ми
 - [Democracy](https://www.positech.co.uk/democracy/) - серия политико-экономических симуляторов
 - [Tropico](https://www.tropico-game.com/) - симулятор управления островным государством
 - [Victoria](https://www.paradoxplaza.com/victoria-3/) - историческая стратегия с экономической системой
-
-Made by Polina Pavchun.
