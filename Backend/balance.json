@@ -1,0 +1,30 @@
+{
+  "countries": [
+    {"name": "США", "weight": 2.3, "alliances": ["НАТО", "G7", "Five Eyes"], "lat": 39.8283, "lon": -98.5795, "initial_si": 85},
+    {"name": "Китай", "weight": 2.1, "alliances": ["БРИКС", "ШОС"], "lat": 35.8617, "lon": 104.1954, "initial_si": 88},
+    {"name": "Россия", "weight": 1.25, "alliances": ["БРИКС", "ШОС"], "lat": 61.5240, "lon": 105.3188, "initial_si": 75},
+    {"name": "Германия", "weight": 1.5, "alliances": ["НАТО", "ЕС", "G7"], "lat": 51.1657, "lon": 10.4515, "initial_si": 80},
+    {"name": "Франция", "weight": 1.3, "alliances": ["НАТО", "ЕС", "G7"], "lat": 46.2276, "lon": 2.2137, "initial_si": 79},
+    {"name": "Великобритания", "weight": 1.4, "alliances": ["НАТО", "G7", "Five Eyes"], "lat": 55.3781, "lon": -3.4360, "initial_si": 78},
+    {"name": "Япония", "weight": 1.8, "alliances": ["G7"], "lat": 36.2048, "lon": 138.2529, "initial_si": 82},
+    {"name": "Индия", "weight": 1.2, "alliances": ["БРИКС", "ШОС"], "lat": 20.5937, "lon": 78.9629, "initial_si": 72},
+    {"name": "Бразилия", "weight": 1.1, "alliances": ["БРИКС"], "lat": -14.2350, "lon": -51.9253, "initial_si": 73},
+    {"name": "Канада", "weight": 1.15, "alliances": ["НАТО", "G7", "Five Eyes"], "lat": 56.1304, "lon": -106.3468, "initial_si": 84},
+    {"name": "Южная Корея", "weight": 1.1, "alliances": ["Союзник США"], "lat": 35.9078, "lon": 127.7669, "initial_si": 81},
+    {"name": "Австралия", "weight": 1.0, "alliances": ["Five Eyes"], "lat": -25.2744, "lon": 133.7751, "initial_si": 83},
+    {"name": "Мексика", "weight": 1.0, "alliances": ["Союзник США"], "lat": 23.6345, "lon": -102.5528, "initial_si": 70},
+    {"name": "Турция", "weight": 0.9, "alliances": ["НАТО"], "lat": 38.9637, "lon": 35.2433, "initial_si": 68},
+    {"name": "Саудовская Аравия", "weight": 1.0, "alliances": [], "lat": 23.8859, "lon": 45.0792, "initial_si": 75},
+    {"name": "ЮАР", "weight": 1.0, "alliances": ["БРИКС"], "lat": -30.5595, "lon": 22.9375, "initial_si": 72}
+  ],
+  "attacks": [
+    {"name": "Социальный протест", "base_cost": 50, "base_damage": 5, "base_risk": 5, "attack_type": "социальная"},
+    {"name": "Фейковые новости", "base_cost": 50, "base_damage": 5, "base_risk": 5, "attack_type": "информационная"},
+    {"name": "Кибератака", "base_cost": 100, "base_damage": 10, "base_risk": 10, "attack_type": "кибер"},
+    {"name": "Валютный кризис", "base_cost": 100, "base_damage": 10, "base_risk": 10, "attack_type": "финансовая"},
+    {"name": "Торговая война", "base_cost": 150, "base_damage": 15, "base_risk": 15, "attack_type": "экономическая"},
+    {"name": "Сырьевая блокада", "base_cost": 150, "base_damage": 15, "base_risk": 15, "attack_type": "ресурсная"},
+    {"name": "Энергоколлапс", "base_cost": 200, "base_damage": 20, "base_risk": 20, "attack_type": "энергетическая"},
+    {"name": "Дефолт", "base_cost": 200, "base_damage": 20, "base_risk": 20, "attack_type": "финансовая"}
+  ]
+}
