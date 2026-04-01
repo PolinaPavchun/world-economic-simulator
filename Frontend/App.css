@@ -1,0 +1,362 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Share Tech Mono', monospace;
+  overflow: hidden; /* убираем скролл, фон на всю страницу */
+}
+
+.auth-container {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 20% 30%, #0a0f1e, #03060c);
+  overflow: hidden;
+}
+
+/* сетка на фоне, двигается */
+.auth-container::before {
+  content: '';
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background-image: 
+    linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridMove 20s linear infinite;
+  pointer-events: none; /* чтобы сетка не мешала кликать */
+}
+
+@keyframes gridMove {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(40px, 40px); }
+}
+
+/* затемнение поверх фона, чтобы карточка читалась лучше */
+.auth-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+  pointer-events: none;
+}
+
+/* карточка со стеклянным эффектом */
+.auth-card {
+  position: relative;
+  z-index: 2;
+  width: 90%;
+  max-width: 460px;
+  background: rgba(10, 20, 30, 0.75);
+  backdrop-filter: blur(12px); /* размытие фона за карточкой */
+  border-radius: 32px;
+  padding: 40px 32px;
+  border: 1px solid rgba(0, 255, 255, 0.25);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 255, 255, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.auth-card:hover {
+  transform: translateY(-5px); /* поднимается при наведении */
+  border-color: rgba(0, 255, 255, 0.5);
+  box-shadow: 0 25px 45px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 255, 255, 0.2);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+/* глобус пульсирует */
+.logo-icon {
+  font-size: 48px;
+  filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.6));
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(0, 255, 255, 0.4)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.8)); transform: scale(1.02); }
+}
+
+.auth-header h1 {
+  font-family: 'Orbitron', monospace;
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: #0ff;
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
+  margin-top: 12px;
+  font-weight: 700;
+}
+
+.auth-header h2 {
+  font-family: 'Orbitron', monospace;
+  font-size: 28px;
+  letter-spacing: 4px;
+  color: #fff;
+  text-shadow: 0 0 5px rgba(0, 255, 255, 0.6);
+  margin-top: -5px;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: rgba(200, 220, 255, 0.7);
+  margin-top: 10px;
+  letter-spacing: 1px;
+}
+
+/* поле ввода с иконкой */
+.input-group {
+  position: relative;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 48px;
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+/* когда в поле пишем — подсвечиваем */
+.input-group:focus-within {
+  border-color: #0ff;
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.input-icon {
+  padding: 0 16px;
+  font-size: 20px;
+  color: #0ff;
+  filter: drop-shadow(0 0 2px #0ff);
+}
+
+.input-group input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 16px 16px 16px 0;
+  color: #fff;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px;
+  outline: none;
+}
+
+.input-group input::placeholder {
+  color: rgba(150, 170, 200, 0.6);
+  font-family: 'Share Tech Mono', monospace;
+}
+
+/* кнопка входа/регистрации */
+.auth-button {
+  width: 100%;
+  background: linear-gradient(135deg, #0a2a3a, #001a1f);
+  border: 1px solid #0ff;
+  padding: 14px;
+  border-radius: 48px;
+  color: #0ff;
+  font-family: 'Orbitron', monospace;
+  font-weight: bold;
+  font-size: 16px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 12px;
+  text-shadow: 0 0 2px #0ff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.auth-button:hover {
+  background: linear-gradient(135deg, #0f3f4f, #002a30);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+/* переключатель между входом и регистрацией */
+.auth-switch {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.auth-switch p {
+  color: rgba(200, 220, 255, 0.7);
+  font-size: 14px;
+}
+
+.switch-button {
+  background: none;
+  border: none;
+  color: #0ff;
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: bold;
+  text-decoration: underline;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.switch-button:hover {
+  text-shadow: 0 0 4px #0ff;
+  color: #fff;
+}
+
+/* сообщения об ошибке или успехе */
+.message {
+  margin-top: 20px;
+  padding: 12px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 13px;
+  font-family: monospace;
+  backdrop-filter: blur(4px);
+}
+
+.message.success {
+  background: rgba(0, 255, 150, 0.15);
+  border: 1px solid #0f6;
+  color: #0f6;
+}
+
+.message.error {
+  background: rgba(255, 50, 50, 0.15);
+  border: 1px solid #f44;
+  color: #f88;
+}
+
+.auth-footer {
+  margin-top: 28px;
+  text-align: center;
+}
+
+.warning-text {
+  font-size: 10px;
+  color: rgba(255, 100, 100, 0.7);
+  letter-spacing: 0.5px;
+}
+
+/* игровой интерфейс пока заглушка */
+.game-container {
+  min-height: 100vh;
+  background: radial-gradient(circle at 10% 20%, #0a121f, #03060c);
+  padding: 20px;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #0ff;
+  flex-wrap: wrap;
+}
+
+.game-header h1 {
+  font-family: 'Orbitron', monospace;
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: #0ff;
+  text-shadow: 0 0 6px #0ff;
+  margin: 0;
+}
+
+.user-badge {
+  background: rgba(0, 255, 255, 0.1);
+  padding: 8px 20px;
+  border-radius: 40px;
+  border: 1px solid #0ff;
+  color: #0ff;
+  font-weight: bold;
+}
+
+.game-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+}
+
+.coming-soon {
+  font-size: 28px;
+  color: rgba(0, 255, 255, 0.6);
+  text-shadow: 0 0 5px #0ff;
+  margin-bottom: 40px;
+  letter-spacing: 2px;
+}
+
+/* три карточки с метриками */
+.stats-preview {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.stat-card {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  border: 1px solid #0ff;
+  border-radius: 20px;
+  padding: 20px 32px;
+  text-align: center;
+  min-width: 140px;
+  transition: all 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+.stat-label {
+  display: block;
+  font-size: 14px;
+  color: #8af;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.stat-value {
+  display: block;
+  font-size: 36px;
+  font-weight: bold;
+  font-family: 'Orbitron', monospace;
+  color: #0ff;
+  text-shadow: 0 0 5px #0ff;
+}
+
+/* для телефонов */
+@media (max-width: 600px) {
+  .auth-card {
+    padding: 30px 20px;
+  }
+  
+  .game-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .stat-card {
+    min-width: 110px;
+    padding: 15px 20px;
+  }
+  
+  .stat-value {
+    font-size: 28px;
+  }
+}
