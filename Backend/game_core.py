@@ -16,28 +16,6 @@ class Country:
         self.initial_si = initial_si          # начальная стабильность
         self.si = initial_si                  # текущая стабильность 
         
-    def get_color(self) -> str:
-        """Цвет точки, отображающую страну на карте"""
-        if self.si >= 70:
-            return '#2ecc71'      
-        elif self.si >= 40:
-            return '#f39c12'      
-        elif self.si >= 20:
-            return '#e67e22'      
-        else:
-            return '#e74c3c'      
-    
-    def get_status(self) -> str:
-        """Состояния страны"""
-        if self.si >= 70:
-            return "Стабильна"
-        elif self.si >= 40:
-            return "Напряженно"
-        elif self.si >= 20:
-            return "Кризис"
-        else:
-            return "Коллапс"
-    
     def take_damage(self, damage: int):
         """Наносим урон стабильности"""
         self.si = max(0, self.si - damage)
@@ -54,9 +32,9 @@ class Attack:
                  base_risk: int, attack_type: str):
         self.name = name                      # название атаки
         self.base_cost = base_cost            # базовая стоимость
-        self.base_damage = base_damage        # базовый урон по стабильности
-        self.base_risk = base_risk            # базовый риск раскрытия
-        self.attack_type = attack_type        # тип атаки 
+        self.base_damage = base_damage        # базовый урон
+        self.base_risk = base_risk            # базовый риск
+        self.attack_type = attack_type        # тип атаки
 
 
 class Game:
@@ -91,13 +69,13 @@ class Game:
         self.round_bonus_given = False    # бонус за раунд уже выдан?
         self.game_over = False             # игра закончена?
         self.win = False                   # победа или поражение?
-        self.last_event = ""               # последнее текущее случайное событие
+        self.last_event = ""               # последнее случайное событие
         self.rounds = []
         self._setup_rounds()
         self._start_round()
     
     def _setup_rounds(self):
-        """Настраиваем 4 раунда: слабая → средняя → сильная → финал(три рандомных страны из всех категорий)"""
+        """Настраиваем 4 раунда: слабая → средняя → сильная → финал (три случайные страны)"""
         weak = [name for name in self.countries if self.countries[name].weight <= 1.0]
         medium = [name for name in self.countries if 1.0 < self.countries[name].weight <= 1.5]
         strong = [name for name in self.countries if self.countries[name].weight > 1.5]
@@ -250,6 +228,7 @@ class Game:
     def get_state(self) -> dict:
         """
         Собираем всё, что нужно показать игроку на экране
+        (цвета и статусы рисует фронт, поэтому здесь только данные)
         """
         return {
             'ip': self.ip,
@@ -260,10 +239,71 @@ class Game:
             'game_over': self.game_over,
             'win': self.win,
             'last_event': self.last_event,
-            'current_targets': [{'name': c.name, 'si': c.si, 'status': c.get_status()} for c in self.current_targets],
-            'countries': [{'name': c.name, 'si': c.si, 'color': c.get_color(),
-                           'status': c.get_status(), 'lat': c.lat, 'lon': c.lon} for c in self.countries.values()],
+            'current_targets': [{'name': c.name, 'si': c.si} for c in self.current_targets],
+            'countries': [{'name': c.name, 'si': c.si, 'weight': c.weight,
+                           'lat': c.lat, 'lon': c.lon} for c in self.countries.values()],
             'attacks': [{'name': a.name, 'cost': a.base_cost, 'damage': a.base_damage, 'risk': a.base_risk} for a in self.attacks]
         }
 
+    def to_dict(self):
+        """Превращаем всю игру в словарь для сохранения в БД"""
+        return {
+            'ip': self.ip,
+            'reveal': self.reveal,
+            'day': self.day,
+            'current_round': self.current_round,
+            'rounds': self.rounds,
+            'round_bonus_given': self.round_bonus_given,
+            'game_over': self.game_over,
+            'win': self.win,
+            'last_event': self.last_event,
+            'countries': {name: {
+                'name': c.name,
+                'weight': c.weight,
+                'alliances': c.alliances,
+                'lat': c.lat,
+                'lon': c.lon,
+                'initial_si': c.initial_si,
+                'si': c.si
+            } for name, c in self.countries.items()},
+            'attacks': [{'name': a.name, 'base_cost': a.base_cost,
+                         'base_damage': a.base_damage, 'base_risk': a.base_risk,
+                         'attack_type': a.attack_type} for a in self.attacks],
+            'current_targets': [c.name for c in self.current_targets]
+        }
 
+    @classmethod
+    def from_dict(cls, data):
+        """Восстанавливаем игру из словаря, загруженного из БД"""
+        instance = cls.__new__(cls)
+        instance.ip = data['ip']
+        instance.reveal = data['reveal']
+        instance.day = data['day']
+        instance.current_round = data['current_round']
+        instance.rounds = data['rounds']
+        instance.round_bonus_given = data['round_bonus_given']
+        instance.game_over = data['game_over']
+        instance.win = data['win']
+        instance.last_event = data['last_event']
+        
+        # Восстанавливаем страны
+        instance.countries = {}
+        for name, cdata in data['countries'].items():
+            country = Country(
+                name=cdata['name'],
+                weight=cdata['weight'],
+                alliances=cdata['alliances'],
+                lat=cdata['lat'],
+                lon=cdata['lon'],
+                initial_si=cdata['initial_si']
+            )
+            country.si = cdata['si']
+            instance.countries[name] = country
+        
+        # Восстанавливаем атаки
+        instance.attacks = [Attack(**a) for a in data['attacks']]
+        
+        # Восстанавливаем текущие цели
+        instance.current_targets = [instance.countries[name] for name in data['current_targets']]
+        
+        return instance

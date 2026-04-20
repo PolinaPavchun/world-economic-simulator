@@ -1,0 +1,535 @@
+/* Современный тёмный стиль с неоновой подсветкой, без эмодзи */
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.game-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #0a0c12;
+    overflow-y: auto;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Шапка с глобусом */
+.game-header {
+    background: rgba(10, 12, 18, 0.95);
+    backdrop-filter: blur(12px);
+    padding: 16px 32px;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.globe-icon {
+    font-size: 28px;
+    filter: drop-shadow(0 0 8px #00d4ff);
+    animation: globePulse 2s ease-in-out infinite;
+}
+
+@keyframes globePulse {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 2px #00d4ff);
+        transform: scale(1);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 12px #00d4ff);
+        transform: scale(1.05);
+    }
+}
+
+.logo-area h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    background: linear-gradient(135deg, #00d4ff, #0088aa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.stats-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    background: rgba(0, 212, 255, 0.08);
+    padding: 6px 14px;
+    border-radius: 40px;
+    color: #00d4ff;
+    font-weight: 500;
+    font-size: 13px;
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    backdrop-filter: blur(4px);
+}
+
+.user-badge {
+    background: rgba(0, 212, 255, 0.12);
+    padding: 6px 16px;
+    border-radius: 40px;
+    color: #00d4ff;
+    font-weight: 500;
+    font-size: 13px;
+    border: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+/* Баннер целей раунда */
+.round-targets-banner {
+    background: rgba(15, 20, 30, 0.6);
+    backdrop-filter: blur(8px);
+    margin: 20px;
+    padding: 16px 24px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    border: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.round-label {
+    font-weight: 600;
+    font-size: 15px;
+    color: #00d4ff;
+    letter-spacing: 0.5px;
+}
+
+.targets-list {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.target-badge {
+    background: rgba(0, 212, 255, 0.08);
+    padding: 6px 14px;
+    border-radius: 40px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #ccdeee;
+    border: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.target-badge strong {
+    color: #00d4ff;
+    font-weight: 600;
+}
+
+.hint {
+    font-size: 12px;
+    color: #6c86a3;
+}
+
+/* Вкладки без эмодзи */
+.game-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 0 20px 24px 20px;
+    background: rgba(15, 20, 30, 0.6);
+    padding: 6px;
+    border-radius: 60px;
+    border: 1px solid rgba(0, 212, 255, 0.15);
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    padding: 10px 32px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #88aacc;
+    cursor: pointer;
+    transition: 0.2s;
+    border-radius: 40px;
+    letter-spacing: 0.3px;
+}
+
+.tab-btn.active {
+    background: #00d4ff;
+    color: #0a0c12;
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+}
+
+/* Основной лейаут */
+.game-layout {
+    display: flex;
+    gap: 20px;
+    padding: 0 20px 20px 20px;
+    height: calc(100vh - 200px);
+}
+
+/* Контейнер карты */
+.map-container {
+    flex: 4;
+    background: rgba(15, 20, 30, 0.5);
+    border-radius: 24px;
+    padding: 16px;
+    border: 1px solid rgba(0, 212, 255, 0.15);
+    display: flex;
+    flex-direction: column;
+}
+
+.world-map-wrapper {
+    flex: 1;
+    min-height: 0;
+    background: #0f141c;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.world-map-wrapper svg {
+    width: 100%;
+    height: 100%;
+    background: #0f141c;
+}
+
+.world-map-wrapper svg path {
+    transition: all 0.2s;
+}
+
+.world-map-wrapper svg path:hover {
+    filter: brightness(1.2);
+    cursor: pointer;
+}
+
+/* Текстовый список целей */
+.targets-list-compact {
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.target-btn {
+    background: rgba(0, 212, 255, 0.08);
+    border: 1px solid rgba(0, 212, 255, 0.25);
+    padding: 8px 20px;
+    border-radius: 40px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #ccdeee;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.target-btn:hover {
+    background: rgba(0, 212, 255, 0.2);
+    border-color: #00d4ff;
+    transform: translateY(-1px);
+}
+
+.target-btn.selected {
+    background: #00d4ff;
+    color: #0a0c12;
+    border-color: #00d4ff;
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+}
+
+/* Правая панель */
+.game-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+}
+
+.selected-info {
+    background: rgba(15, 20, 30, 0.7);
+    padding: 16px;
+    border-radius: 20px;
+    text-align: center;
+    font-weight: 500;
+    color: #00d4ff;
+    border: 1px solid rgba(0, 212, 255, 0.25);
+    backdrop-filter: blur(4px);
+    font-size: 14px;
+}
+
+.attack-action {
+    background: linear-gradient(135deg, #c0392b, #e74c3c);
+    border: none;
+    padding: 14px;
+    border-radius: 60px;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+}
+
+.attack-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+}
+
+.attack-action:disabled {
+    background: #3a3f4a;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Лог */
+.log-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(15, 20, 30, 0.5);
+    border-radius: 20px;
+    padding: 12px;
+    border: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+.log-entry {
+    font-size: 11px;
+    color: #aaccff;
+    padding: 6px 10px;
+    background: rgba(0, 212, 255, 0.04);
+    border-radius: 12px;
+    border-left: 2px solid #00d4ff;
+    font-family: monospace;
+}
+
+/* Вкладка атак */
+.attacks-tab {
+    padding: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.attacks-tab h3 {
+    font-size: 18px;
+    font-weight: 500;
+    color: #00d4ff;
+    margin-bottom: 8px;
+    letter-spacing: -0.2px;
+}
+
+.attacks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.attack-card {
+    background: rgba(15, 20, 30, 0.7);
+    border: 1px solid rgba(0, 212, 255, 0.15);
+    border-radius: 20px;
+    padding: 20px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.attack-card:hover {
+    transform: translateY(-3px);
+    border-color: #00d4ff;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.attack-card.active {
+    border: 1.5px solid #00d4ff;
+    background: rgba(0, 212, 255, 0.08);
+    box-shadow: 0 0 16px rgba(0, 212, 255, 0.2);
+}
+
+.attack-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #00d4ff;
+}
+
+.attack-stats {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: #88aacc;
+}
+
+.selected-attack-info {
+    margin-top: 20px;
+    padding: 12px;
+    background: rgba(0, 212, 255, 0.08);
+    border-radius: 16px;
+    text-align: center;
+    color: #00d4ff;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Toast уведомления */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(26, 42, 58, 0.95);
+    backdrop-filter: blur(8px);
+    border-radius: 60px;
+    padding: 12px 24px;
+    font-weight: 500;
+    font-size: 13px;
+    z-index: 1000;
+    animation: fadeInOut 3s ease forwards;
+    border-left: 3px solid;
+    font-family: 'Inter', sans-serif;
+}
+
+.toast.success {
+    border-left-color: #2ecc71;
+    color: #2ecc71;
+}
+
+.toast.error {
+    border-left-color: #e74c3c;
+    color: #e74c3c;
+}
+
+.toast.warning {
+    border-left-color: #f39c12;
+    color: #f39c12;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+
+    15% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    85% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+}
+
+/* Модалка окончания игры */
+.game-over-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background: #0f141c;
+    border: 1px solid #00d4ff;
+    border-radius: 32px;
+    padding: 40px;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 0 48px rgba(0, 212, 255, 0.2);
+}
+
+.modal-content h2 {
+    color: #00d4ff;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.modal-content p {
+    color: #ccdeee;
+    font-size: 14px;
+}
+
+.modal-content button {
+    background: #00d4ff;
+    color: #0a0c12;
+    border: none;
+    padding: 12px 28px;
+    margin-top: 24px;
+    font-weight: 600;
+    border-radius: 60px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: 0.2s;
+}
+
+.modal-content button:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 16px #00d4ff;
+}
+
+/* Адаптация */
+@media (max-width: 768px) {
+    .game-layout {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .map-container {
+        min-height: 350px;
+    }
+
+    .attacks-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .round-targets-banner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .stats-bar {
+        justify-content: center;
+    }
+
+    .logo-area h1 {
+        font-size: 14px;
+    }
+}
