@@ -1,4 +1,3 @@
-/* Современный тёмный стиль с неоновой подсветкой, без эмодзи */
 @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap');
 
 * {
@@ -18,7 +17,6 @@
     font-family: 'Inter', sans-serif;
 }
 
-/* Шапка с глобусом */
 .game-header {
     background: rgba(10, 12, 18, 0.95);
     backdrop-filter: blur(12px);
@@ -46,10 +44,10 @@
 .globe-icon {
     font-size: 28px;
     filter: drop-shadow(0 0 8px #00d4ff);
-    animation: globePulse 2s ease-in-out infinite;
+    animation: pulse 2s ease-in-out infinite;
 }
 
-@keyframes globePulse {
+@keyframes pulse {
 
     0%,
     100% {
@@ -66,7 +64,6 @@
 .logo-area h1 {
     font-size: 18px;
     font-weight: 600;
-    letter-spacing: -0.3px;
     background: linear-gradient(135deg, #00d4ff, #0088aa);
     -webkit-background-clip: text;
     background-clip: text;
@@ -83,72 +80,40 @@
     background: rgba(0, 212, 255, 0.08);
     padding: 6px 14px;
     border-radius: 40px;
-    color: #00d4ff;
-    font-weight: 500;
+    font-weight: 600;
     font-size: 13px;
     border: 1px solid rgba(0, 212, 255, 0.2);
-    backdrop-filter: blur(4px);
+    color: #66ccff !important;
+    text-shadow: 0 0 5px rgba(102, 204, 255, 0.3);
 }
 
 .user-badge {
     background: rgba(0, 212, 255, 0.12);
     padding: 6px 16px;
     border-radius: 40px;
-    color: #00d4ff;
+    color: #88ccff;
     font-weight: 500;
     font-size: 13px;
     border: 1px solid rgba(0, 212, 255, 0.3);
 }
 
-/* Баннер целей раунда */
-.round-targets-banner {
-    background: rgba(15, 20, 30, 0.6);
-    backdrop-filter: blur(8px);
-    margin: 20px;
-    padding: 16px 24px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-    border: 1px solid rgba(0, 212, 255, 0.2);
+.reset-game-btn {
+    background: none;
+    border: none;
+    color: #ffaa66;
+    font-size: 16px;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.2s;
+    padding: 0 4px;
 }
 
-.round-label {
-    font-weight: 600;
-    font-size: 15px;
-    color: #00d4ff;
-    letter-spacing: 0.5px;
+.reset-game-btn:hover {
+    color: #ff8844;
+    transform: scale(1.1);
+    text-shadow: 0 0 4px #ff8844;
 }
 
-.targets-list {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.target-badge {
-    background: rgba(0, 212, 255, 0.08);
-    padding: 6px 14px;
-    border-radius: 40px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #ccdeee;
-    border: 1px solid rgba(0, 212, 255, 0.2);
-}
-
-.target-badge strong {
-    color: #00d4ff;
-    font-weight: 600;
-}
-
-.hint {
-    font-size: 12px;
-    color: #6c86a3;
-}
-
-/* Вкладки без эмодзи */
 .game-tabs {
     display: flex;
     justify-content: center;
@@ -166,21 +131,20 @@
     padding: 10px 32px;
     font-family: 'Inter', sans-serif;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     color: #88aacc;
     cursor: pointer;
     transition: 0.2s;
     border-radius: 40px;
-    letter-spacing: 0.3px;
 }
 
 .tab-btn.active {
-    background: #00d4ff;
+    background: linear-gradient(135deg, #00d4ff, #0088aa);
     color: #0a0c12;
-    box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.6);
 }
 
-/* Основной лейаут */
 .game-layout {
     display: flex;
     gap: 20px;
@@ -188,10 +152,9 @@
     height: calc(100vh - 200px);
 }
 
-/* Контейнер карты */
 .map-container {
     flex: 4;
-    background: rgba(15, 20, 30, 0.5);
+    background: #0a0c12;
     border-radius: 24px;
     padding: 16px;
     border: 1px solid rgba(0, 212, 255, 0.15);
@@ -202,62 +165,36 @@
 .world-map-wrapper {
     flex: 1;
     min-height: 0;
-    background: #0f141c;
-    border-radius: 16px;
+    background: #0a1a3a;
+    border-radius: 20px;
     overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 100, 200, 0.3);
+    position: relative;
 }
 
 .world-map-wrapper svg {
     width: 100%;
     height: 100%;
-    background: #0f141c;
+    background: #0a1a3a !important;
+    border-radius: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.world-map-wrapper svg rect {
+    fill: #0a1a3a !important;
 }
 
 .world-map-wrapper svg path {
-    transition: all 0.2s;
+    transition: all 0.3s ease;
+    stroke-width: 2 !important;
 }
 
 .world-map-wrapper svg path:hover {
-    filter: brightness(1.2);
+    filter: brightness(1.15);
     cursor: pointer;
 }
 
-/* Текстовый список целей */
-.targets-list-compact {
-    margin-top: 16px;
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.target-btn {
-    background: rgba(0, 212, 255, 0.08);
-    border: 1px solid rgba(0, 212, 255, 0.25);
-    padding: 8px 20px;
-    border-radius: 40px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #ccdeee;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'Inter', sans-serif;
-}
-
-.target-btn:hover {
-    background: rgba(0, 212, 255, 0.2);
-    border-color: #00d4ff;
-    transform: translateY(-1px);
-}
-
-.target-btn.selected {
-    background: #00d4ff;
-    color: #0a0c12;
-    border-color: #00d4ff;
-    box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
-}
-
-/* Правая панель */
 .game-panel {
     flex: 1;
     display: flex;
@@ -271,30 +208,47 @@
     padding: 16px;
     border-radius: 20px;
     text-align: center;
-    font-weight: 500;
-    color: #00d4ff;
-    border: 1px solid rgba(0, 212, 255, 0.25);
-    backdrop-filter: blur(4px);
+    font-weight: 600;
     font-size: 14px;
+    color: #00ccff;
+    border: 1px solid rgba(0, 204, 255, 0.3);
 }
 
 .attack-action {
-    background: linear-gradient(135deg, #c0392b, #e74c3c);
+    background: linear-gradient(135deg, #e8a070, #d48050);
     border: none;
     padding: 14px;
     border-radius: 60px;
     color: white;
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 16px;
+    letter-spacing: 1px;
     cursor: pointer;
     transition: all 0.2s;
-    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    animation: attackPulse 2s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(232, 160, 112, 0.5);
+}
+
+@keyframes attackPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(232, 160, 112, 0.7);
+    }
+
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 0 0 10px rgba(232, 160, 112, 0);
+    }
 }
 
 .attack-action:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+    box-shadow: 0 8px 20px rgba(232, 160, 112, 0.5);
+    background: linear-gradient(135deg, #f0b080, #e09060);
 }
 
 .attack-action:disabled {
@@ -302,9 +256,9 @@
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+    animation: none;
 }
 
-/* Лог */
 .log-list {
     display: flex;
     flex-direction: column;
@@ -317,6 +271,16 @@
     border: 1px solid rgba(0, 212, 255, 0.1);
 }
 
+.log-title {
+    font-size: 10px;
+    color: #88aacc;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
 .log-entry {
     font-size: 11px;
     color: #aaccff;
@@ -327,26 +291,29 @@
     font-family: monospace;
 }
 
-/* Вкладка атак */
+/* Attacks Tab */
 .attacks-tab {
     padding: 20px;
-    max-width: 1000px;
+    max-width: 900px;
     margin: 0 auto;
+    background: linear-gradient(135deg, #0a1225 0%, #1a0a1a 100%);
+    border-radius: 24px;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
 }
 
 .attacks-tab h3 {
     font-size: 18px;
-    font-weight: 500;
+    font-weight: 600;
     color: #00d4ff;
-    margin-bottom: 8px;
     letter-spacing: -0.2px;
+    margin-bottom: 20px;
 }
 
 .attacks-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
-    margin-top: 20px;
+    margin-top: 0;
 }
 
 .attack-card {
@@ -357,46 +324,238 @@
     text-align: left;
     cursor: pointer;
     transition: all 0.2s;
+    position: relative;
 }
 
 .attack-card:hover {
     transform: translateY(-3px);
-    border-color: #00d4ff;
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    border-color: #ff8844;
+    box-shadow: 0 12px 24px rgba(255, 136, 68, 0.5);
 }
 
 .attack-card.active {
-    border: 1.5px solid #00d4ff;
-    background: rgba(0, 212, 255, 0.08);
-    box-shadow: 0 0 16px rgba(0, 212, 255, 0.2);
+    border: 1.5px solid #ff8844;
+    background: rgba(255, 136, 68, 0.2);
+    box-shadow: 0 0 20px rgba(255, 136, 68, 0.5);
 }
 
 .attack-name {
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 12px;
-    color: #00d4ff;
+    color: #ffaa66;
+    letter-spacing: -0.2px;
 }
 
 .attack-stats {
     display: flex;
     gap: 16px;
     font-size: 12px;
+    font-weight: 500;
     color: #88aacc;
+}
+
+.attack-stats span:first-child {
+    color: #66ccff;
+}
+
+.attack-stats span:nth-child(2) {
+    color: #ff8888;
+}
+
+.attack-stats span:last-child {
+    color: #66ccff;
+}
+
+.attack-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0a0c12;
+    border: 1px solid #00d4ff;
+    border-radius: 12px;
+    padding: 8px 12px;
+    width: 240px;
+    font-size: 11px;
+    color: #ccdeee;
+    z-index: 10;
+    margin-bottom: 8px;
+    pointer-events: none;
+    white-space: normal;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.attack-card:hover .attack-tooltip {
+    display: block;
+}
+
+.attack-effectiveness {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.eff-note {
+    font-size: 10px;
+    background: rgba(255, 136, 68, 0.2);
+    padding: 2px 6px;
+    border-radius: 12px;
+    color: #ffaa66;
 }
 
 .selected-attack-info {
     margin-top: 20px;
     padding: 12px;
-    background: rgba(0, 212, 255, 0.08);
+    background: rgba(255, 136, 68, 0.2);
     border-radius: 16px;
     text-align: center;
-    color: #00d4ff;
+    color: #ffaa66;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
-/* Toast уведомления */
+/* Analytics Tab */
+.analytics-tab {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #0a1225 0%, #1a0a1a 100%);
+    border-radius: 24px;
+    position: relative;
+}
+
+.analytics-tab h3 {
+    color: #00d4ff;
+    margin-bottom: 20px;
+}
+
+.analytics-table {
+    overflow-x: auto;
+}
+
+.analytics-table table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #ccdeee;
+    font-size: 13px;
+}
+
+.analytics-table th,
+.analytics-table td {
+    padding: 10px 8px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.analytics-table th {
+    background: rgba(0, 212, 255, 0.1);
+    font-weight: 600;
+    color: #00d4ff;
+}
+
+.analytics-table tr {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.analytics-table tr:hover {
+    background: rgba(0, 212, 255, 0.15);
+}
+
+.analytics-table .selected-row {
+    background: rgba(0, 212, 255, 0.2);
+    border-left: 3px solid #00ffff;
+}
+
+.analytics-hint {
+    margin-top: 16px;
+    font-size: 12px;
+    color: #88aacc;
+    text-align: center;
+}
+
+/* Country Tooltip on Analytics Hover */
+.country-tooltip {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 320px;
+    background: #0f141c;
+    border: 1px solid #00d4ff;
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    z-index: 200;
+    backdrop-filter: blur(8px);
+    animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50%) translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+}
+
+.country-tooltip h4 {
+    color: #00d4ff;
+    margin-bottom: 12px;
+    font-size: 16px;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+    padding-bottom: 6px;
+}
+
+.tooltip-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    font-size: 11px;
+    color: #cceeff;
+    margin-bottom: 10px;
+}
+
+.tooltip-alliances,
+.tooltip-partners,
+.tooltip-vulnerabilities {
+    font-size: 11px;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.tooltip-alliances {
+    color: #ffaa66;
+}
+
+.tooltip-partners {
+    color: #88ccff;
+}
+
+.tooltip-vulnerabilities strong {
+    color: #ff6666;
+}
+
+.tooltip-vulnerabilities ul {
+    margin: 4px 0 0 16px;
+    padding: 0;
+}
+
+.tooltip-vulnerabilities li {
+    color: #ffaa88;
+    margin: 4px 0;
+}
+
+/* Toast Messages */
 .toast {
     position: fixed;
     bottom: 30px;
@@ -406,10 +565,10 @@
     backdrop-filter: blur(8px);
     border-radius: 60px;
     padding: 12px 24px;
-    font-weight: 500;
+    font-weight: 600;
     font-size: 13px;
     z-index: 1000;
-    animation: fadeInOut 3s ease forwards;
+    animation: fadeOut 3s ease forwards;
     border-left: 3px solid;
     font-family: 'Inter', sans-serif;
 }
@@ -429,7 +588,7 @@
     color: #f39c12;
 }
 
-@keyframes fadeInOut {
+@keyframes fadeOut {
     0% {
         opacity: 0;
         transform: translateX(-50%) translateY(20px);
@@ -451,7 +610,7 @@
     }
 }
 
-/* Модалка окончания игры */
+/* Game Over Modal */
 .game-over-modal {
     position: fixed;
     top: 0;
@@ -478,7 +637,7 @@
 
 .modal-content h2 {
     color: #00d4ff;
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 16px;
 }
 
@@ -488,12 +647,12 @@
 }
 
 .modal-content button {
-    background: #00d4ff;
-    color: #0a0c12;
+    background: linear-gradient(135deg, #e8a070, #d48050);
+    color: white;
     border: none;
     padding: 12px 28px;
     margin-top: 24px;
-    font-weight: 600;
+    font-weight: 700;
     border-radius: 60px;
     cursor: pointer;
     font-family: 'Inter', sans-serif;
@@ -502,10 +661,178 @@
 
 .modal-content button:hover {
     transform: scale(1.02);
-    box-shadow: 0 0 16px #00d4ff;
+    box-shadow: 0 0 16px #e8a070;
 }
 
-/* Адаптация */
+/* Tutorial Overlay */
+.tutorial-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.tutorial-modal {
+    background: linear-gradient(135deg, #0f141c, #1a0f1a);
+    border: 1px solid #00d4ff;
+    border-radius: 32px;
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 0 48px rgba(0, 212, 255, 0.2);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.tutorial-close {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: #00d4ff;
+    font-size: 24px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.tutorial-close:hover {
+    color: #ff6666;
+    transform: scale(1.1);
+}
+
+.tutorial-icon {
+    font-size: 56px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.tutorial-modal h2 {
+    font-family: 'Inter', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    color: #00d4ff;
+    margin-bottom: 8px;
+}
+
+.tutorial-role {
+    text-align: center;
+    color: #ffcc44;
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.tutorial-section {
+    margin-bottom: 24px;
+    border-left: 2px solid #00d4ff;
+    padding-left: 16px;
+}
+
+.tutorial-section h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #00d4ff;
+    margin-bottom: 10px;
+}
+
+.tutorial-section p {
+    color: #ccdeee;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.tutorial-section ul {
+    color: #ccdeee;
+    font-size: 13px;
+    padding-left: 20px;
+    line-height: 1.6;
+}
+
+.tutorial-section li {
+    margin: 8px 0;
+}
+
+.tutorial-button {
+    width: 100%;
+    background: linear-gradient(135deg, #e8a070, #d48050);
+    border: none;
+    padding: 14px;
+    border-radius: 60px;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-top: 16px;
+}
+
+.tutorial-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 16px rgba(232, 160, 112, 0.5);
+}
+
+/* Scrollbar */
+.tutorial-modal::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tutorial-modal::-webkit-scrollbar-track {
+    background: #0a0c12;
+    border-radius: 4px;
+}
+
+.tutorial-modal::-webkit-scrollbar-thumb {
+    background: #e8a070;
+    border-radius: 4px;
+}
+
+/* Loading */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    color: #00d4ff;
+    font-size: 24px;
+    background: #0a0c12;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
     .game-layout {
         flex-direction: column;
@@ -520,16 +847,15 @@
         grid-template-columns: 1fr;
     }
 
-    .round-targets-banner {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .stats-bar {
-        justify-content: center;
-    }
-
-    .logo-area h1 {
-        font-size: 14px;
+    .country-tooltip {
+        position: fixed;
+        bottom: 10px;
+        top: auto;
+        right: 10px;
+        left: 10px;
+        width: auto;
+        transform: none;
+        max-height: 50vh;
+        overflow-y: auto;
     }
 }

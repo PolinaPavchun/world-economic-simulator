@@ -4,230 +4,543 @@
       "name": "США",
       "weight": 2.3,
       "alliances": [
-        "НАТО",
-        "G7",
-        "Five Eyes"
+        {
+          "name": "НАТО",
+          "type": "оборонный"
+        },
+        {
+          "name": "G7",
+          "type": "экономический"
+        },
+        {
+          "name": "Five Eyes",
+          "type": "разведывательный"
+        }
       ],
-      "lat": 39.8283,
-      "lon": -98.5795,
-      "initial_si": 85
+      "trade_partners": {
+        "Китай": 0.25,
+        "Канада": 0.18,
+        "Мексика": 0.15,
+        "Япония": 0.10,
+        "Германия": 0.08
+      },
+      "economic_health": 85,
+      "gdp": 100,
+      "debt": 120,
+      "inflation": 3.5,
+      "unemployment": 4.2,
+      "trade_balance": -0.8,
+      "digitalization": 90,
+      "export_oriented": false,
+      "energy_import": 0.30,
+      "energy_export": 0.10
     },
     {
       "name": "Китай",
       "weight": 2.1,
       "alliances": [
-        "БРИКС",
-        "ШОС"
+        {
+          "name": "БРИКС",
+          "type": "экономический"
+        },
+        {
+          "name": "ШОС",
+          "type": "оборонный"
+        }
       ],
-      "lat": 35.8617,
-      "lon": 104.1954,
-      "initial_si": 88
+      "trade_partners": {
+        "США": 0.20,
+        "Япония": 0.12,
+        "Южная Корея": 0.10,
+        "Германия": 0.08,
+        "Россия": 0.06
+      },
+      "economic_health": 88,
+      "gdp": 90,
+      "debt": 80,
+      "inflation": 2.8,
+      "unemployment": 5.0,
+      "trade_balance": 0.6,
+      "digitalization": 75,
+      "export_oriented": true,
+      "energy_import": 0.25,
+      "energy_export": 0.05
     },
     {
       "name": "Россия",
-      "weight": 2.0,
+      "weight": 1.25,
       "alliances": [
-        "БРИКС",
-        "ШОС"
+        {
+          "name": "БРИКС",
+          "type": "экономический"
+        },
+        {
+          "name": "ШОС",
+          "type": "оборонный"
+        }
       ],
-      "lat": 61.5240,
-      "lon": 105.3188,
-      "initial_si": 75
+      "trade_partners": {
+        "Китай": 0.15,
+        "Германия": 0.10,
+        "Турция": 0.08,
+        "Индия": 0.07
+      },
+      "economic_health": 75,
+      "gdp": 70,
+      "debt": 45,
+      "inflation": 6.0,
+      "unemployment": 4.5,
+      "trade_balance": 0.4,
+      "digitalization": 65,
+      "export_oriented": true,
+      "energy_import": 0.05,
+      "energy_export": 0.60
     },
     {
       "name": "Германия",
       "weight": 1.5,
       "alliances": [
-        "НАТО",
-        "ЕС",
-        "G7"
+        {
+          "name": "НАТО",
+          "type": "оборонный"
+        },
+        {
+          "name": "ЕС",
+          "type": "экономический"
+        },
+        {
+          "name": "G7",
+          "type": "экономический"
+        }
       ],
-      "lat": 51.1657,
-      "lon": 10.4515,
-      "initial_si": 80
+      "trade_partners": {
+        "Франция": 0.15,
+        "США": 0.12,
+        "Китай": 0.10,
+        "Нидерланды": 0.08,
+        "Великобритания": 0.07
+      },
+      "economic_health": 80,
+      "gdp": 80,
+      "debt": 70,
+      "inflation": 2.5,
+      "unemployment": 3.8,
+      "trade_balance": 0.3,
+      "digitalization": 85,
+      "export_oriented": true,
+      "energy_import": 0.45,
+      "energy_export": 0.05
     },
     {
       "name": "Франция",
       "weight": 1.3,
       "alliances": [
-        "НАТО",
-        "ЕС",
-        "G7"
+        {
+          "name": "НАТО",
+          "type": "оборонный"
+        },
+        {
+          "name": "ЕС",
+          "type": "экономический"
+        },
+        {
+          "name": "G7",
+          "type": "экономический"
+        }
       ],
-      "lat": 46.2276,
-      "lon": 2.2137,
-      "initial_si": 79
+      "trade_partners": {
+        "Германия": 0.18,
+        "Испания": 0.10,
+        "Италия": 0.10,
+        "США": 0.08
+      },
+      "economic_health": 79,
+      "gdp": 75,
+      "debt": 95,
+      "inflation": 2.2,
+      "unemployment": 7.5,
+      "trade_balance": -0.2,
+      "digitalization": 78,
+      "export_oriented": false,
+      "energy_import": 0.40,
+      "energy_export": 0.08
     },
     {
       "name": "Великобритания",
       "weight": 1.4,
       "alliances": [
-        "НАТО",
-        "G7",
-        "Five Eyes"
+        {
+          "name": "НАТО",
+          "type": "оборонный"
+        },
+        {
+          "name": "G7",
+          "type": "экономический"
+        },
+        {
+          "name": "Five Eyes",
+          "type": "разведывательный"
+        }
       ],
-      "lat": 55.3781,
-      "lon": -3.4360,
-      "initial_si": 78
+      "trade_partners": {
+        "США": 0.15,
+        "Германия": 0.12,
+        "Франция": 0.10,
+        "Нидерланды": 0.07
+      },
+      "economic_health": 78,
+      "gdp": 72,
+      "debt": 85,
+      "inflation": 2.8,
+      "unemployment": 4.0,
+      "trade_balance": -0.3,
+      "digitalization": 82,
+      "export_oriented": false,
+      "energy_import": 0.35,
+      "energy_export": 0.12
     },
     {
       "name": "Япония",
       "weight": 1.8,
       "alliances": [
-        "G7"
+        {
+          "name": "G7",
+          "type": "экономический"
+        }
       ],
-      "lat": 36.2048,
-      "lon": 138.2529,
-      "initial_si": 82
+      "trade_partners": {
+        "Китай": 0.22,
+        "США": 0.18,
+        "Южная Корея": 0.12,
+        "Австралия": 0.08
+      },
+      "economic_health": 82,
+      "gdp": 85,
+      "debt": 200,
+      "inflation": 1.2,
+      "unemployment": 2.6,
+      "trade_balance": 0.1,
+      "digitalization": 88,
+      "export_oriented": true,
+      "energy_import": 0.85,
+      "energy_export": 0.00
     },
     {
       "name": "Индия",
       "weight": 1.2,
       "alliances": [
-        "БРИКС",
-        "ШОС"
+        {
+          "name": "БРИКС",
+          "type": "экономический"
+        },
+        {
+          "name": "ШОС",
+          "type": "оборонный"
+        }
       ],
-      "lat": 20.5937,
-      "lon": 78.9629,
-      "initial_si": 72
+      "trade_partners": {
+        "Китай": 0.12,
+        "США": 0.10,
+        "ОАЭ": 0.08,
+        "Саудовская Аравия": 0.07
+      },
+      "economic_health": 72,
+      "gdp": 60,
+      "debt": 70,
+      "inflation": 5.5,
+      "unemployment": 7.0,
+      "trade_balance": -0.4,
+      "digitalization": 55,
+      "export_oriented": true,
+      "energy_import": 0.40,
+      "energy_export": 0.02
     },
     {
       "name": "Бразилия",
       "weight": 1.1,
       "alliances": [
-        "БРИКС"
+        {
+          "name": "БРИКС",
+          "type": "экономический"
+        }
       ],
-      "lat": -14.2350,
-      "lon": -51.9253,
-      "initial_si": 73
+      "trade_partners": {
+        "Китай": 0.20,
+        "США": 0.12,
+        "Аргентина": 0.08
+      },
+      "economic_health": 73,
+      "gdp": 55,
+      "debt": 75,
+      "inflation": 4.8,
+      "unemployment": 9.0,
+      "trade_balance": 0.2,
+      "digitalization": 60,
+      "export_oriented": true,
+      "energy_import": 0.10,
+      "energy_export": 0.25
     },
     {
       "name": "Канада",
       "weight": 1.15,
       "alliances": [
-        "НАТО",
-        "G7",
-        "Five Eyes"
+        {
+          "name": "НАТО",
+          "type": "оборонный"
+        },
+        {
+          "name": "G7",
+          "type": "экономический"
+        },
+        {
+          "name": "Five Eyes",
+          "type": "разведывательный"
+        }
       ],
-      "lat": 56.1304,
-      "lon": -106.3468,
-      "initial_si": 84
+      "trade_partners": {
+        "США": 0.75,
+        "Китай": 0.05,
+        "Мексика": 0.04
+      },
+      "economic_health": 84,
+      "gdp": 65,
+      "debt": 90,
+      "inflation": 2.0,
+      "unemployment": 5.5,
+      "trade_balance": 0.1,
+      "digitalization": 80,
+      "export_oriented": true,
+      "energy_import": 0.05,
+      "energy_export": 0.45
     },
     {
       "name": "Южная Корея",
       "weight": 1.1,
       "alliances": [
-        "Союзник США"
+        {
+          "name": "Союзник США",
+          "type": "оборонный"
+        }
       ],
-      "lat": 35.9078,
-      "lon": 127.7669,
-      "initial_si": 81
+      "trade_partners": {
+        "Китай": 0.25,
+        "США": 0.12,
+        "Япония": 0.10,
+        "Вьетнам": 0.08
+      },
+      "economic_health": 81,
+      "gdp": 62,
+      "debt": 55,
+      "inflation": 2.5,
+      "unemployment": 3.2,
+      "trade_balance": 0.5,
+      "digitalization": 92,
+      "export_oriented": true,
+      "energy_import": 0.90,
+      "energy_export": 0.01
     },
     {
       "name": "Австралия",
       "weight": 1.0,
       "alliances": [
-        "Five Eyes"
+        {
+          "name": "Five Eyes",
+          "type": "разведывательный"
+        }
       ],
-      "lat": -25.2744,
-      "lon": 133.7751,
-      "initial_si": 83
+      "trade_partners": {
+        "Китай": 0.30,
+        "Япония": 0.15,
+        "США": 0.08,
+        "Южная Корея": 0.07
+      },
+      "economic_health": 83,
+      "gdp": 58,
+      "debt": 45,
+      "inflation": 2.2,
+      "unemployment": 4.0,
+      "trade_balance": 0.3,
+      "digitalization": 75,
+      "export_oriented": true,
+      "energy_import": 0.10,
+      "energy_export": 0.50
     },
     {
       "name": "Мексика",
       "weight": 1.0,
       "alliances": [
-        "Союзник США"
+        {
+          "name": "Союзник США",
+          "type": "оборонный"
+        }
       ],
-      "lat": 23.6345,
-      "lon": -102.5528,
-      "initial_si": 70
+      "trade_partners": {
+        "США": 0.80,
+        "Китай": 0.05,
+        "Канада": 0.03
+      },
+      "economic_health": 70,
+      "gdp": 50,
+      "debt": 55,
+      "inflation": 4.5,
+      "unemployment": 3.8,
+      "trade_balance": -0.2,
+      "digitalization": 55,
+      "export_oriented": true,
+      "energy_import": 0.20,
+      "energy_export": 0.15
     },
     {
       "name": "Турция",
       "weight": 0.9,
       "alliances": [
-        "НАТО"
+        {
+          "name": "НАТО",
+          "type": "оборонный"
+        }
       ],
-      "lat": 38.9637,
-      "lon": 35.2433,
-      "initial_si": 68
+      "trade_partners": {
+        "Германия": 0.10,
+        "Россия": 0.10,
+        "Китай": 0.08,
+        "Италия": 0.06
+      },
+      "economic_health": 68,
+      "gdp": 45,
+      "debt": 65,
+      "inflation": 25.0,
+      "unemployment": 10.5,
+      "trade_balance": -0.6,
+      "digitalization": 60,
+      "export_oriented": false,
+      "energy_import": 0.70,
+      "energy_export": 0.05
     },
     {
       "name": "Саудовская Аравия",
       "weight": 1.0,
       "alliances": [],
-      "lat": 23.8859,
-      "lon": 45.0792,
-      "initial_si": 75
+      "trade_partners": {
+        "Китай": 0.18,
+        "США": 0.12,
+        "Япония": 0.10,
+        "Индия": 0.09
+      },
+      "economic_health": 75,
+      "gdp": 52,
+      "debt": 30,
+      "inflation": 2.0,
+      "unemployment": 6.0,
+      "trade_balance": 0.7,
+      "digitalization": 70,
+      "export_oriented": true,
+      "energy_import": 0.00,
+      "energy_export": 0.80
     },
     {
       "name": "ЮАР",
       "weight": 1.0,
       "alliances": [
-        "БРИКС"
+        {
+          "name": "БРИКС",
+          "type": "экономический"
+        }
       ],
-      "lat": -30.5595,
-      "lon": 22.9375,
-      "initial_si": 72
+      "trade_partners": {
+        "Китай": 0.15,
+        "США": 0.10,
+        "Германия": 0.08,
+        "Индия": 0.07
+      },
+      "economic_health": 72,
+      "gdp": 42,
+      "debt": 70,
+      "inflation": 4.2,
+      "unemployment": 32.0,
+      "trade_balance": 0.0,
+      "digitalization": 60,
+      "export_oriented": true,
+      "energy_import": 0.15,
+      "energy_export": 0.10
     }
   ],
   "attacks": [
-    {
-      "name": "Социальный протест",
-      "base_cost": 50,
-      "base_damage": 5,
-      "base_risk": 5,
-      "attack_type": "социальная"
-    },
-    {
-      "name": "Фейковые новости",
-      "base_cost": 50,
-      "base_damage": 5,
-      "base_risk": 5,
-      "attack_type": "информационная"
-    },
     {
       "name": "Кибератака",
       "base_cost": 100,
       "base_damage": 10,
       "base_risk": 10,
-      "attack_type": "кибер"
-    },
-    {
-      "name": "Валютный кризис",
-      "base_cost": 100,
-      "base_damage": 10,
-      "base_risk": 10,
-      "attack_type": "финансовая"
+      "attack_type": "кибер",
+      "tooltip": "Эффективнее против стран с высоким уровнем цифровизации (Digitalization > 80).",
+      "multipliers": {
+        "digitalization_high": 1.5,
+        "digitalization_low": 0.6
+      }
     },
     {
       "name": "Торговая война",
       "base_cost": 150,
       "base_damage": 15,
       "base_risk": 15,
-      "attack_type": "экономическая"
+      "attack_type": "экономическая",
+      "tooltip": "Сильнее бьёт по экспортно-ориентированным экономикам. Слабый эффект против стран с большим внутренним рынком.",
+      "multipliers": {
+        "export_oriented": 1.4,
+        "large_domestic": 0.8
+      }
     },
     {
-      "name": "Сырьевая блокада",
-      "base_cost": 150,
-      "base_damage": 15,
-      "base_risk": 15,
-      "attack_type": "ресурсная"
+      "name": "Валютный кризис",
+      "base_cost": 100,
+      "base_damage": 10,
+      "base_risk": 10,
+      "attack_type": "финансовая",
+      "tooltip": "Очень эффективен против стран с высоким госдолгом (> 100% ВВП).",
+      "multipliers": {
+        "high_debt": 1.5,
+        "low_debt": 0.7
+      }
     },
     {
       "name": "Энергоколлапс",
       "base_cost": 200,
       "base_damage": 20,
       "base_risk": 20,
-      "attack_type": "энергетическая"
+      "attack_type": "энергетическая",
+      "tooltip": "Сокрушителен для стран-импортёров энергии (>40% импорта). Слаб против экспортёров.",
+      "multipliers": {
+        "high_energy_import": 1.5,
+        "energy_exporter": 0.6
+      }
+    },
+    {
+      "name": "Социальный протест",
+      "base_cost": 50,
+      "base_damage": 5,
+      "base_risk": 5,
+      "attack_type": "социальная",
+      "tooltip": "Наиболее эффективен при высокой безработице (>8%) или высокой инфляции (>8%).",
+      "multipliers": {}
     },
     {
       "name": "Дефолт",
       "base_cost": 200,
-      "base_damage": 20,
-      "base_risk": 20,
-      "attack_type": "финансовая"
+      "base_damage": 18,
+      "base_risk": 18,
+      "attack_type": "финансовая",
+      "tooltip": "Максимальный урон по странам с большим долгом и низкими резервами.",
+      "multipliers": {
+        "high_debt": 1.6,
+        "low_reserves": 1.3
+      }
     }
-  ]
+  ],
+  "global_params": {
+    "world_health_threshold": 30,
+    "contagion_factor": 0.35,
+    "recovery_rate_high": 2,
+    "recovery_rate_low": 0.5,
+    "daily_maintenance_cost": 8,
+    "reveal_decay": 2
+  }
 }

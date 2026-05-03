@@ -12,17 +12,13 @@ async function hashPassword(password) {
 }
 
 function App() {
-  // Данные пользователя
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
-
-  // Состояние интерфейса
   const [loggedIn, setLoggedIn] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
 
-  // Отправляем запрос на регистрацию
   const handleRegister = async () => {
     const hashed = await hashPassword(password);
     try {
@@ -43,7 +39,6 @@ function App() {
     }
   };
 
-  // Отправляем запрос на вход
   const handleLogin = async () => {
     const hashed = await hashPassword(password);
     try {
@@ -65,7 +60,6 @@ function App() {
     }
   };
 
-  // Отправляем форму
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isLogin) {
@@ -75,10 +69,8 @@ function App() {
     }
   };
 
-  // Закрываем обучение
   const closeTutorial = () => setShowTutorial(false);
 
-  // Если пользователь вошёл — показываем игру
   if (loggedIn) {
     return (
       <>
@@ -86,12 +78,12 @@ function App() {
           <div className="tutorial-overlay" onClick={closeTutorial}>
             <div className="tutorial-modal" onClick={(e) => e.stopPropagation()}>
               <button className="tutorial-close" onClick={closeTutorial}>✕</button>
-              <div className="tutorial-icon">🎮</div>
-              <h2>ДОБРО ПОЖАЛОВАТЬ!</h2>
+              <div className="tutorial-icon">🌍</div>
+              <h2>ГЛОБАЛЬНЫЙ ЭКОНОМИЧЕСКИЙ СИМУЛЯТОР</h2>
               <p className="tutorial-role">Твоя роль: Дестабилизатор мировой экономики</p>
               <div className="tutorial-section">
                 <h3>🎯 ЦЕЛЬ</h3>
-                <p>Довести экономику стран до коллапса (SI ≤ 20)</p>
+                <p>Обрушить среднее экономическое здоровье всех стран ниже 30%.</p>
               </div>
               <div className="tutorial-section">
                 <h3>⚔️ КАК ИГРАТЬ</h3>
@@ -99,6 +91,7 @@ function App() {
                   <li>Кликай на страны на карте, чтобы выбрать цель</li>
                   <li>Выбирай атаку во вкладке "Арсенал атак"</li>
                   <li>Следи за раскрываемостью — если 100%, ты проиграл</li>
+                  <li>Урон от атаки распространяется на торговых партнёров</li>
                   <li>Время идёт автоматически (1 день = 10 секунд)</li>
                 </ul>
               </div>
@@ -113,7 +106,6 @@ function App() {
     );
   }
 
-  // Форма входа/регистрации
   return (
     <div className="auth-container">
       <div className="auth-card">

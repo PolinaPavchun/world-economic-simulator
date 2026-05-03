@@ -2,23 +2,19 @@ from flask import Flask, request, jsonify
 from users_db_sqlite import add_user, check_user, nickname_exists, save_game_state, load_game_state
 import hashlib
 from flask_cors import CORS
-from game_core import Game
+from game_core import GlobalEconomyGame as Game
 
 app = Flask(__name__)
 CORS(app)
 
-# Кеш активных игр, чтобы не пересоздавать объект при каждом запросе
 active_games = {}
 
 def hash_password(password):
-    """Создаём хэш пароля"""
     return hashlib.sha256(password.encode()).hexdigest()
 
 def get_or_create_game(nickname):
-    """Возвращаем объект Game для пользователя (из кеша или из БД)"""
     if nickname in active_games:
         return active_games[nickname]
-    
     saved = load_game_state(nickname)
     if saved:
         game = Game.from_dict(saved)
@@ -29,19 +25,14 @@ def get_or_create_game(nickname):
 
 @app.route("/register", methods=["POST"])
 def register():
-    """Регистрация нового пользователя"""
     data = request.json
     nickname = data.get("nickname")
     password = data.get("password")
-
     if not nickname or not password:
         return jsonify({"error": "Введите никнейм и пароль"}), 400
-
     if nickname_exists(nickname):
         return jsonify({"error": "Никнейм уже занят"}), 400
-
     if add_user(nickname, hash_password(password)):
-        # Сразу создаём новую игру и сохраняем
         new_game = Game("balance.json")
         save_game_state(nickname, new_game.to_dict())
         return jsonify({"message": "Регистрация успешна"}), 201
@@ -50,16 +41,12 @@ def register():
 
 @app.route("/login", methods=["POST"])
 def login():
-    """Авторизация пользователя"""
     data = request.json
     nickname = data.get("nickname")
     password = data.get("password")
-
     if not nickname or not password:
         return jsonify({"error": "Введите никнейм и пароль"}), 400
-
     if check_user(nickname, hash_password(password)):
-        # Загружаем игру в кеш
         get_or_create_game(nickname)
         return jsonify({"message": "Вход успешен", "nickname": nickname}), 200
     else:
@@ -67,7 +54,6 @@ def login():
 
 @app.route("/game/state", methods=["GET"])
 def game_state():
-    """Возвращает текущее состояние игры для пользователя"""
     nickname = request.args.get("nickname")
     if not nickname:
         return jsonify({"error": "nickname required"}), 400
@@ -76,7 +62,6 @@ def game_state():
 
 @app.route("/game/attack", methods=["POST"])
 def game_attack():
-    """Обрабатывает атаку на страну"""
     data = request.json
     nickname = data.get("nickname")
     attack_name = data.get("attack_name")
@@ -91,7 +76,6 @@ def game_attack():
 
 @app.route("/game/daily", methods=["POST"])
 def game_daily():
-    """Выполняет ежедневное обновление игры"""
     nickname = request.json.get("nickname")
     if not nickname:
         return jsonify({"error": "nickname required"}), 400
@@ -101,6 +85,21 @@ def game_daily():
     save_game_state(nickname, game.to_dict())
     return jsonify(state)
 
+@app.route("/reset_game", methods=["POST"])
+def reset_game():
+    data = request.json
+    nickname = data.get("nickname")
+    if not nickname:
+        return jsonify({"error": "nickname required"}), 400
+    from users_db_sqlite import get_db
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM game_states WHERE nickname = ?", (nickname,))
+    conn.commit()
+    new_game = Game("balance.json")
+    save_game_state(nickname, new_game.to_dict())
+    active_games[nickname] = new_game
+    return jsonify({"message": "Игра сброшена", "state": new_game.get_state()}), 200
+
 if __name__ == "__main__":
-    # Запускаем сервер
     app.run(debug=True, port=5003)
