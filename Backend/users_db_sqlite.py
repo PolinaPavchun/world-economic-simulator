@@ -1,8 +1,10 @@
 import sqlite3
 import threading
 import json
+import os
 
-DB_FILE = "users.sqlite"
+_BASE = os.path.dirname(os.path.abspath(__file__))
+DB_FILE = os.path.join(_BASE, "users.sqlite")
 _local = threading.local()
 
 def get_db():

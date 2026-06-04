@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { API } from "./api";
 import "./App.css";
 import GamePage from "./GamePage";
 
@@ -22,7 +23,7 @@ function App() {
   const handleRegister = async () => {
     const hashed = await hashPassword(password);
     try {
-      const response = await fetch("http://localhost:5003/register", {
+      const response = await fetch(`${API}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nickname, password: hashed })
@@ -42,7 +43,7 @@ function App() {
   const handleLogin = async () => {
     const hashed = await hashPassword(password);
     try {
-      const response = await fetch("http://localhost:5003/login", {
+      const response = await fetch(`${API}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nickname, password: hashed })
@@ -78,25 +79,36 @@ function App() {
           <div className="tutorial-overlay" onClick={closeTutorial}>
             <div className="tutorial-modal" onClick={(e) => e.stopPropagation()}>
               <button className="tutorial-close" onClick={closeTutorial}>✕</button>
-              <div className="tutorial-icon">🌍</div>
-              <h2>ГЛОБАЛЬНЫЙ ЭКОНОМИЧЕСКИЙ СИМУЛЯТОР</h2>
-              <p className="tutorial-role">Твоя роль: Дестабилизатор мировой экономики</p>
-              <div className="tutorial-section">
-                <h3>🎯 ЦЕЛЬ</h3>
-                <p>Обрушить среднее экономическое здоровье всех стран ниже 30%.</p>
+
+              <div className="briefing-classified">Совершенно секретно. Только для агентов.</div>
+
+              <div className="briefing-divider" />
+
+              <div className="briefing-blocks">
+                <div className="briefing-block">
+                  <div className="bb-title">Цель</div>
+                  <div className="bb-text">Обрушить среднее экономическое здоровье 16 стран ниже 30%. Следи за глобальным индексом в шапке, это твой ориентир.</div>
+                </div>
+                <div className="briefing-block">
+                  <div className="bb-title">Как действовать</div>
+                  <div className="bb-text">Выбери страну на карте. Открой Арсенал и выбери атаку под её слабость: высокий долг, энергозависимость, социальное напряжение. Читай объяснения после удара, каждая атака основана на реальном экономическом механизме.</div>
+                </div>
+                <div className="briefing-block">
+                  <div className="bb-title">Очки влияния (IP)</div>
+                  <div className="bb-text">Тратишь на атаки, получаешь обратно за успех. Кнопка «Разведка»: ответь на вопрос про экономику, заработай IP и снизь раскрытие.</div>
+                </div>
+                <div className="briefing-block">
+                  <div className="bb-title">Кризис не останавливается</div>
+                  <div className="bb-text">Удар по одной стране расходится волной на её торговых партнёров, кредиторов и союзников. Иногда один удар задевает пятерых.</div>
+                </div>
+                <div className="briefing-block briefing-block-danger">
+                  <div className="bb-title">Опасность: раскрытие</div>
+                  <div className="bb-text">Провалы и неточные атаки оставляют следы. Если раскрытие дойдёт до 100%, операция провалена. Жди, отвечай на вопросы, выбирай цели точнее.</div>
+                </div>
               </div>
-              <div className="tutorial-section">
-                <h3>⚔️ КАК ИГРАТЬ</h3>
-                <ul>
-                  <li>Кликай на страны на карте, чтобы выбрать цель</li>
-                  <li>Выбирай атаку во вкладке "Арсенал атак"</li>
-                  <li>Следи за раскрываемостью — если 100%, ты проиграл</li>
-                  <li>Урон от атаки распространяется на торговых партнёров</li>
-                  <li>Время идёт автоматически (1 день = 10 секунд)</li>
-                </ul>
-              </div>
+
               <button className="tutorial-button" onClick={closeTutorial}>
-                НАЧАТЬ ИГРУ
+                Начать операцию
               </button>
             </div>
           </div>

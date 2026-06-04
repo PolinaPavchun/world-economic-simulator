@@ -1,11 +1,15 @@
 from flask import Flask, request, jsonify
 from users_db_sqlite import add_user, check_user, nickname_exists, save_game_state, load_game_state
 import hashlib
+import os
 from flask_cors import CORS
 from game_core import GlobalEconomyGame as Game
 
 app = Flask(__name__)
 CORS(app)
+
+_BASE = os.path.dirname(os.path.abspath(__file__))
+BALANCE_FILE = os.path.join(_BASE, "balance.json")
 
 active_games = {}
 
@@ -19,7 +23,7 @@ def get_or_create_game(nickname):
     if saved:
         game = Game.from_dict(saved)
     else:
-        game = Game("balance.json")
+        game = Game(BALANCE_FILE)
     active_games[nickname] = game
     return game
 
@@ -33,7 +37,7 @@ def register():
     if nickname_exists(nickname):
         return jsonify({"error": "Никнейм уже занят"}), 400
     if add_user(nickname, hash_password(password)):
-        new_game = Game("balance.json")
+        new_game = Game(BALANCE_FILE)
         save_game_state(nickname, new_game.to_dict())
         return jsonify({"message": "Регистрация успешна"}), 201
     else:
@@ -69,10 +73,10 @@ def game_attack():
     if not nickname or not attack_name or not target_name:
         return jsonify({"error": "Missing fields"}), 400
     game = get_or_create_game(nickname)
-    success, message = game.apply_attack(attack_name, target_name)
+    success, message, details = game.apply_attack(attack_name, target_name)
     state = game.get_state()
     save_game_state(nickname, game.to_dict())
-    return jsonify({"success": success, "message": message, "state": state})
+    return jsonify({"success": success, "message": message, "state": state, "details": details})
 
 @app.route("/game/daily", methods=["POST"])
 def game_daily():
@@ -85,6 +89,28 @@ def game_daily():
     save_game_state(nickname, game.to_dict())
     return jsonify(state)
 
+@app.route("/game/quiz", methods=["GET"])
+def get_quiz():
+    nickname = request.args.get("nickname")
+    if not nickname:
+        return jsonify({"error": "nickname required"}), 400
+    game = get_or_create_game(nickname)
+    q = game.get_quiz_question()
+    return jsonify(q)
+
+@app.route("/game/quiz/answer", methods=["POST"])
+def answer_quiz():
+    data = request.json
+    nickname = data.get("nickname")
+    answer = data.get("answer", "")
+    if not nickname:
+        return jsonify({"error": "nickname required"}), 400
+    game = get_or_create_game(nickname)
+    result = game.submit_quiz_answer(answer)
+    result['ip'] = game.ip
+    save_game_state(nickname, game.to_dict())
+    return jsonify(result)
+
 @app.route("/reset_game", methods=["POST"])
 def reset_game():
     data = request.json
@@ -96,10 +122,11 @@ def reset_game():
     cursor = conn.cursor()
     cursor.execute("DELETE FROM game_states WHERE nickname = ?", (nickname,))
     conn.commit()
-    new_game = Game("balance.json")
+    new_game = Game(BALANCE_FILE)
     save_game_state(nickname, new_game.to_dict())
     active_games[nickname] = new_game
     return jsonify({"message": "Игра сброшена", "state": new_game.get_state()}), 200
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5003)
+    port = int(os.environ.get("PORT", 5003))
+    app.run(debug=False, host="0.0.0.0", port=port)

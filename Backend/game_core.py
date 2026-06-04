@@ -1,6 +1,17 @@
 import json
 import random
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
+from dataclasses import dataclass
+from lessons import LESSONS
+
+@dataclass
+class EconomicConnection:
+    """Представляет экономическую связь между двумя странами"""
+    from_country: str
+    to_country: str
+    connection_type: str  # 'trade', 'debt', 'energy'
+    strength: float  # 0-1, сила связи
+    data: dict  # дополнительные параметры
 
 class Country:
     def __init__(self, data: dict):
@@ -19,6 +30,23 @@ class Country:
         self.energy_import = data.get('energy_import', 0)
         self.energy_export = data.get('energy_export', 0)
         self.initial_health = data['economic_health']
+        
+        # НОВЫЕ ПОКАЗАТЕЛИ
+        self.foreign_reserves = data.get('foreign_reserves_usd_billion', 100)
+        self.human_development_index = data.get('human_development_index', 0.7)
+        self.corruption_perception_index = data.get('corruption_perception_index', 50)
+        self.central_bank_rate = data.get('central_bank_rate', 5.0)
+        self.manufacturing_value_added_pct = data.get('manufacturing_value_added_pct', 15.0)
+        self.current_account_balance_pct = data.get('current_account_balance_pct', 0.0)
+        
+        # НОВЫЕ ТИПЫ СВЯЗЕЙ
+        self.external_debt_holders = data.get('external_debt_holders', {})
+        self.energy_dependencies = data.get('energy_dependencies', {})
+        self.trade_blocs = data.get('trade_blocs', [])
+        
+        # Флаги для механик
+        self.sanctions_experience = False  # Были ли уже санкции
+        self.capital_controls = False  # Введены ли ограничения на движение капитала
 
     def take_damage(self, damage: int, multiplier: float = 1.0):
         effective = int(damage * multiplier)
@@ -26,14 +54,52 @@ class Country:
         if effective > 0:
             self.unemployment = min(40, self.unemployment + effective / 20)
             self.inflation = min(50, self.inflation + effective / 25)
+            
+            # Урон влияет на резервы (чем больше урон, тем больше тратим резервов)
+            if self.foreign_reserves > 0:
+                reserve_loss = effective * 0.5  # 50% урона идёт из резервов
+                self.foreign_reserves = max(0, self.foreign_reserves - reserve_loss)
 
     def recover(self, amount: int):
         self.economic_health = min(self.initial_health, self.economic_health + amount)
         self.unemployment = max(0, self.unemployment - amount / 30)
         self.inflation = max(0, self.inflation - amount / 40)
+        
+        # Восстановление влияет на резервы (чем выше ИЧР, тем быстрее восстанавливаются)
+        if self.human_development_index > 0.8:
+            self.foreign_reserves = min(self.foreign_reserves + amount * 0.3, 5000)
 
     def is_collapsed(self) -> bool:
         return self.economic_health <= 20
+    
+    def get_reserve_protection(self) -> float:
+        """Возвращает множитель защиты от финансовых атак на основе резервов"""
+        if self.foreign_reserves > 1000:  # > $1 трлн
+            return 0.5  # 50% защита
+        elif self.foreign_reserves > 500:  # > $500 млрд
+            return 0.7  # 30% защита
+        elif self.foreign_reserves > 200:  # > $200 млрд
+            return 0.85  # 15% защита
+        else:
+            return 1.0  # нет защиты
+    
+    def get_corruption_multiplier(self) -> float:
+        """Возвращает множитель уязвимости на основе коррупции"""
+        if self.corruption_perception_index < 30:  # Высокая коррупция
+            return 1.5  # +50% урон
+        elif self.corruption_perception_index < 50:  # Средняя коррупция
+            return 1.2  # +20% урон
+        else:  # Низкая коррупция
+            return 1.0  # без изменений
+    
+    def get_hdi_recovery_bonus(self) -> float:
+        """Возвращает бонус к восстановлению на основе ИЧР"""
+        if self.human_development_index > 0.9:
+            return 1.5  # +50% к восстановлению
+        elif self.human_development_index > 0.8:
+            return 1.2  # +20% к восстановлению
+        else:
+            return 1.0
 
 class Attack:
     def __init__(self, data: dict):
@@ -56,6 +122,44 @@ class GlobalEconomyGame:
         'ШОС': 1.1,
     }
 
+    # Alliance damage reduction per attack type
+    # Models real-world collective defense / economic solidarity mechanisms
+    ALLIANCE_DEFENSE = {
+        'G7': {
+            'currency_crisis': 0.70,  # IMF emergency loans, G7 currency coordination
+            'debt_spiral': 0.72,       # G7 can rescue members via bailout packages
+        },
+        'ЕС': {
+            'energy_embargo': 0.62,    # EU energy solidarity regulation, joint gas reserves
+            'trade_blockade': 0.80,    # EU single market provides alternative channels
+        },
+        'БРИКС': {
+            'trade_blockade': 0.85,    # BRICS alternative trade routes and markets
+        },
+        'Five Eyes': {
+            'cyber_attack': 0.38,      # Joint cybersecurity intelligence sharing
+        },
+        'НАТО': {
+            'social_unrest': 0.82,     # Democratic institutional resilience
+        },
+        'ШОС': {
+            'social_unrest': 0.90,     # Political stability mechanisms
+        },
+    }
+    
+    TRADE_BLOC_SUPPORT = {
+        'ЕС': 1.5,  # Страны ЕС поддерживают друг друга
+        'USMCA': 1.3,  # Североамериканская зона
+        'RCEP': 1.2,  # Азиатско-тихоокеанская зона
+        'Mercosur': 1.1,  # Южная Америка
+        'ЕАЭС': 1.2,  # Евразийский союз
+        'GCC': 1.3,  # Совет сотрудничества арабских государств
+        'SADC': 1.1,  # Юг Африки
+        'SAARC': 1.1,  # Южная Азия
+        'CPTPP': 1.2,  # Транстихоокеанское партнёрство
+        'ЕАСТ': 1.3,  # Европейская ассоциация свободной торговли
+    }
+
     def __init__(self, json_file: str):
         with open(json_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -65,40 +169,261 @@ class GlobalEconomyGame:
             self.countries[c.name] = c
         self.attacks: List[Attack] = [Attack(a) for a in data['attacks']]
         self.global_params = data['global_params']
+        self.economic_lessons = data.get('economic_lessons', {})
 
-        self.ip = 800
-        self.reveal = 0
+        self.ip = 1000
+        self.reveal = 0          # 0–100: давление на операцию
         self.day = 0
         self.game_over = False
         self.win = False
         self.last_event = ""
+        self.last_lesson = None
+        self.connections: List[EconomicConnection] = []
+        self._build_connection_graph()
+        self.discovered_laws: set = set()
+        self._quiz_answer: str = ""
+        self._quiz_explanation: str = ""
+        self._quiz_reward: int = 0
+        self.quiz_today_count: int = 0   # сколько раз уже отвечали сегодня
+        self.quiz_reset_day: int = 0     # день, когда был последний сброс
 
-    def _get_attack_multiplier(self, attack: Attack, country: Country) -> float:
+    def _build_connection_graph(self):
+        """Строит граф экономических связей между странами"""
+        for country in self.countries.values():
+            # Торговые связи
+            for partner, share in country.trade_partners.items():
+                if partner in self.countries:
+                    self.connections.append(EconomicConnection(
+                        country.name, partner, 'trade', share, {}
+                    ))
+            
+            # Долговые связи
+            for creditor, amount in country.external_debt_holders.items():
+                if creditor in self.countries:
+                    # Нормализуем сумму (делим на 1000 для получения доли)
+                    strength = min(amount / 1000, 1.0)
+                    self.connections.append(EconomicConnection(
+                        country.name, creditor, 'debt', strength, {'amount': amount}
+                    ))
+            
+            # Энергетические связи
+            for supplier, share in country.energy_dependencies.items():
+                if supplier in self.countries:
+                    self.connections.append(EconomicConnection(
+                        country.name, supplier, 'energy', share, {}
+                    ))
+    
+    def _get_trade_bloc_multiplier(self, country: Country) -> float:
+        """Возвращает множитель поддержки от торговых блоков"""
+        max_mult = 1.0
+        for bloc in country.trade_blocs:
+            mult = self.TRADE_BLOC_SUPPORT.get(bloc, 1.0)
+            if mult > max_mult:
+                max_mult = mult
+        return max_mult
+
+    def _get_alliance_defense(self, country: Country, attack_type: str) -> Tuple[float, str]:
+        """Returns (damage_reduction_multiplier, explanation) from alliance membership."""
+        best_mult = 1.0
+        notes = []
+        alliance_names = [
+            a if isinstance(a, str) else a.get('name', '')
+            for a in country.alliances
+        ]
+        for name in alliance_names:
+            reductions = self.ALLIANCE_DEFENSE.get(name, {})
+            reduction = reductions.get(attack_type, 1.0)
+            if reduction < best_mult:
+                best_mult = reduction
+                mechanism = {
+                    'currency_crisis': f"{name}: МВФ готов предоставить экстренные кредиты",
+                    'debt_spiral': f"{name}: союзники организуют пакет финансовой помощи",
+                    'energy_embargo': f"{name}: действует режим энергетической солидарности",
+                    'trade_blockade': f"{name}: альтернативные рынки снижают зависимость",
+                    'social_unrest': f"{name}: демократические институты сдерживают протесты",
+                    'cyber_attack': f"{name}: совместная разведка кибер-угроз",
+                }.get(attack_type, f"{name}: союзники оказывают поддержку")
+                notes.append(mechanism)
+        return best_mult, "; ".join(notes)
+
+    def _get_attack_multiplier_and_explanation(self, attack: Attack, country: Country) -> Tuple[float, str, str]:
+        """Возвращает (множитель, объяснение успеха/неудачи, образовательный урок)"""
         mult = 1.0
-        if attack.attack_type == 'кибер':
-            if country.digitalization >= 80:
-                mult *= attack.multipliers.get('digitalization_high', 1.5)
-            elif country.digitalization <= 40:
-                mult *= attack.multipliers.get('digitalization_low', 0.6)
-        elif attack.attack_type == 'экономическая':
-            if country.export_oriented:
-                mult *= attack.multipliers.get('export_oriented', 1.4)
+        explanation = ""
+        lesson = ""
+
+        # ── 1. ВАЛЮТНАЯ АТАКА ──────────────────────────────────────────────
+        if attack.attack_type == 'currency_crisis':
+            debt_ratio = country.debt / country.gdp * 100 if country.gdp > 0 else 0
+            reserves = country.foreign_reserves
+            high_debt = debt_ratio > 80
+            low_reserves = reserves < 200
+
+            if high_debt and low_reserves:
+                mult = attack.multipliers.get('high_debt_low_reserves', 2.2)
+                explanation = LESSONS['currency_crisis']['success_high_debt_low_reserves']['text'].format(
+                    debt=round(debt_ratio, 1), reserves=round(reserves, 1))
+                lesson = LESSONS['currency_crisis']['success_high_debt_low_reserves']['lesson']
+            elif high_debt:
+                mult = attack.multipliers.get('high_debt', 1.5)
+                explanation = LESSONS['currency_crisis']['success_high_debt']['text'].format(debt=round(debt_ratio, 1))
+                lesson = LESSONS['currency_crisis']['success_high_debt']['lesson']
+            elif low_reserves:
+                mult = attack.multipliers.get('low_reserves', 1.3)
+                explanation = LESSONS['currency_crisis']['success_low_reserves']['text'].format(reserves=round(reserves, 1))
+                lesson = LESSONS['currency_crisis']['success_low_reserves']['lesson']
             else:
-                mult *= attack.multipliers.get('large_domestic', 0.8)
-        elif attack.attack_type == 'финансовая':
-            if country.debt > country.gdp:
-                mult *= attack.multipliers.get('high_debt', 1.5)
+                mult = attack.multipliers.get('low_debt_high_reserves', 0.4)
+                explanation = LESSONS['currency_crisis']['failure']['text'].format(
+                    debt=round(debt_ratio, 1), reserves=round(reserves, 1))
+                lesson = LESSONS['currency_crisis']['failure']['lesson']
+
+        # ── 2. ДОЛГОВАЯ СПИРАЛЬ ────────────────────────────────────────────
+        elif attack.attack_type == 'debt_spiral':
+            debt_ratio = country.debt / country.gdp * 100 if country.gdp > 0 else 0
+            critical_t = attack.multipliers.get('conditions', {}).get('critical_threshold', 100)
+            high_t = attack.multipliers.get('conditions', {}).get('high_threshold', 80)
+
+            if debt_ratio > critical_t:
+                mult = attack.multipliers.get('critical_debt', 2.1)
+                explanation = LESSONS['debt_spiral']['critical']['text'].format(debt=round(debt_ratio, 1))
+                lesson = LESSONS['debt_spiral']['critical']['lesson']
+            elif debt_ratio > high_t:
+                mult = attack.multipliers.get('high_debt', 1.4)
+                explanation = LESSONS['debt_spiral']['high']['text'].format(debt=round(debt_ratio, 1))
+                lesson = LESSONS['debt_spiral']['high']['lesson']
             else:
-                mult *= attack.multipliers.get('low_debt', 0.7)
-        elif attack.attack_type == 'энергетическая':
-            if country.energy_import > 0.4:
-                mult *= attack.multipliers.get('high_energy_import', 1.5)
-            elif country.energy_export > 0.4:
-                mult *= attack.multipliers.get('energy_exporter', 0.6)
-        elif attack.attack_type == 'социальная':
-            if country.unemployment > 8 or country.inflation > 8:
-                mult *= 1.5
-        return mult
+                mult = attack.multipliers.get('low_debt', 0.3)
+                explanation = LESSONS['debt_spiral']['failure']['text'].format(debt=round(debt_ratio, 1))
+                lesson = LESSONS['debt_spiral']['failure']['lesson']
+
+        # ── 3. ТОРГОВЫЕ САНКЦИИ ────────────────────────────────────────────
+        elif attack.attack_type == 'trade_blockade':
+            trade_dependency = sum(country.trade_partners.values()) * 100
+            num_partners = len(country.trade_partners)
+            high_dependency = trade_dependency > 50
+            concentrated = num_partners <= 3
+
+            if high_dependency and concentrated:
+                mult = attack.multipliers.get('high_dependency', 1.8) * attack.multipliers.get('concentrated_partners', 1.5)
+                explanation = LESSONS['trade_blockade']['success_high_dependency']['text'].format(
+                    dependency=round(trade_dependency, 1)) + f" Всего {num_partners} партнёра — нет диверсификации."
+                lesson = LESSONS['trade_blockade']['success_high_dependency']['lesson']
+            elif high_dependency:
+                mult = attack.multipliers.get('high_dependency', 1.8)
+                explanation = LESSONS['trade_blockade']['success_high_dependency']['text'].format(
+                    dependency=round(trade_dependency, 1))
+                lesson = LESSONS['trade_blockade']['success_high_dependency']['lesson']
+            elif concentrated:
+                mult = attack.multipliers.get('concentrated_partners', 1.5)
+                explanation = LESSONS['trade_blockade']['success_concentrated']['text'].format(partners=num_partners)
+                lesson = LESSONS['trade_blockade']['success_concentrated']['lesson']
+            else:
+                mult = attack.multipliers.get('low_dependency', 0.4)
+                explanation = LESSONS['trade_blockade']['failure']['text'].format(dependency=round(trade_dependency, 1))
+                lesson = LESSONS['trade_blockade']['failure']['lesson']
+
+        # ── 4. ЭНЕРГЕТИЧЕСКИЙ ШАНТАЖ ───────────────────────────────────────
+        elif attack.attack_type == 'energy_embargo':
+            energy_import_pct = country.energy_import * 100
+            energy_export_pct = country.energy_export * 100
+            is_exporter = energy_export_pct > 40
+
+            if is_exporter:
+                mult = attack.multipliers.get('energy_exporter', 0.2)
+                explanation = f"Страна экспортирует {round(energy_export_pct, 1)}% энергии — эмбарго контрпродуктивно."
+                lesson = "Экспортёры энергии не просто устойчивы — они сами могут использовать энергию как оружие."
+            elif energy_import_pct > 40:
+                mult = attack.multipliers.get('high_import', 2.0)
+                explanation = LESSONS['energy_embargo']['success_high_import']['text'].format(
+                    import_value=round(energy_import_pct, 1))
+                lesson = LESSONS['energy_embargo']['success_high_import']['lesson']
+            else:
+                mult = attack.multipliers.get('low_import', 0.4)
+                explanation = LESSONS['energy_embargo']['failure']['text'].format(
+                    import_value=round(energy_import_pct, 1))
+                lesson = LESSONS['energy_embargo']['failure']['lesson']
+
+        # ── 5. СОЦИАЛЬНЫЙ ВЗРЫВ ────────────────────────────────────────────
+        elif attack.attack_type == 'social_unrest':
+            inflation = country.inflation
+            unemployment = country.unemployment
+            corruption = country.corruption_perception_index
+            high_inflation = inflation > 8
+            high_unemployment = unemployment > 10
+            high_corruption = corruption < 35
+
+            if high_inflation and high_unemployment and high_corruption:
+                mult = attack.multipliers.get('triple_threat', 2.5)
+                explanation = (f"Тройной удар: инфляция {round(inflation,1)}% + безработица {round(unemployment,1)}% "
+                               f"+ коррупция (индекс {corruption}) — взрывная смесь.")
+                lesson = LESSONS['social_unrest']['triple_threat']['lesson']
+            elif high_inflation and high_unemployment:
+                mult = attack.multipliers.get('both_high', 2.0)
+                explanation = f"Инфляция {round(inflation,1)}% + безработица {round(unemployment,1)}% = двойной удар по уровню жизни."
+                lesson = LESSONS['social_unrest']['both_high']['lesson']
+            elif high_inflation:
+                mult = attack.multipliers.get('high_inflation', 1.7)
+                explanation = LESSONS['social_unrest']['success_high_inflation']['text'].format(inflation=round(inflation, 1))
+                lesson = LESSONS['social_unrest']['success_high_inflation']['lesson']
+            elif high_unemployment:
+                mult = attack.multipliers.get('high_unemployment', 1.9)
+                explanation = LESSONS['social_unrest']['success_high_unemployment']['text'].format(unemployment=round(unemployment, 1))
+                lesson = LESSONS['social_unrest']['success_high_unemployment']['lesson']
+            elif high_corruption:
+                mult = attack.multipliers.get('high_corruption', 1.5)
+                explanation = f"Коррупционный скандал работает: индекс восприятия коррупции {corruption} — доверие к власти подорвано."
+                lesson = LESSONS['social_unrest']['high_corruption']['lesson']
+            else:
+                mult = attack.multipliers.get('low_all', 0.4)
+                explanation = LESSONS['social_unrest']['failure']['text'].format(
+                    inflation=round(inflation, 1), unemployment=round(unemployment, 1))
+                lesson = LESSONS['social_unrest']['failure']['lesson']
+
+        # ── 6. КИБЕРАТАКА ──────────────────────────────────────────────────
+        elif attack.attack_type == 'cyber_attack':
+            digital = country.digitalization
+            high_t = attack.multipliers.get('conditions', {}).get('high_threshold', 75)
+            mid_t = attack.multipliers.get('conditions', {}).get('mid_threshold', 55)
+
+            if digital > high_t:
+                mult = attack.multipliers.get('high_digital', 1.9)
+                explanation = LESSONS['cyber_attack']['high_digital']['text'].format(digital=digital)
+                lesson = LESSONS['cyber_attack']['high_digital']['lesson']
+            elif digital > mid_t:
+                mult = attack.multipliers.get('mid_digital', 1.0)
+                explanation = LESSONS['cyber_attack']['mid_digital']['text'].format(digital=digital)
+                lesson = LESSONS['cyber_attack']['mid_digital']['lesson']
+            else:
+                mult = attack.multipliers.get('low_digital', 0.4)
+                explanation = LESSONS['cyber_attack']['low_digital']['text'].format(digital=digital)
+                lesson = LESSONS['cyber_attack']['low_digital']['lesson']
+
+        else:
+            mult = 1.0
+            explanation = "Атака применена."
+            lesson = ""
+
+        # ── Коррупция усиливает урон (кроме кибератак — там отдельная логика) ──
+        if attack.attack_type not in ['cyber_attack', 'social_unrest']:
+            corruption_mult = country.get_corruption_multiplier()
+            if corruption_mult > 1.0:
+                mult *= corruption_mult
+                explanation += f" Коррупция (ИКВ {country.corruption_perception_index}) усилила урон."
+
+        # ── Резервы защищают при финансовых атаках ──────────────────────────
+        if attack.attack_type in ['currency_crisis', 'debt_spiral']:
+            reserve_protection = country.get_reserve_protection()
+            if reserve_protection < 1.0:
+                mult *= reserve_protection
+
+        # ── Защита альянсов ─────────────────────────────────────────────────
+        alliance_mult, alliance_note = self._get_alliance_defense(country, attack.attack_type)
+        if alliance_mult < 1.0:
+            mult *= alliance_mult
+            explanation += f" | 🛡️ {alliance_note} (×{alliance_mult:.2f})."
+
+        return mult, explanation, lesson
 
     def _calculate_risk(self, attack: Attack, target: Country) -> int:
         risk = attack.base_risk * target.weight
@@ -110,130 +435,298 @@ class GlobalEconomyGame:
             risk *= mult
         return int(risk)
 
-    def _spread_damage(self, source_name: str, initial_damage: int):
+    def _spread_damage_with_tracking(self, source_name: str, initial_damage: int) -> List[dict]:
+        """Распространяет урон и возвращает список затронутых стран с типами связей"""
+        affected = []
         visited = set()
         queue = [(source_name, initial_damage, 1.0)]
+        
         while queue:
             curr_name, damage, factor = queue.pop(0)
             if curr_name in visited:
                 continue
             visited.add(curr_name)
-            curr = self.countries[curr_name]
-            for partner, share in curr.trade_partners.items():
-                if partner in visited:
-                    continue
-                transfer = int(damage * share * self.global_params['contagion_factor'] * factor)
-                if transfer > 0:
-                    partner_country = self.countries[partner]
+            
+            curr_country = self.countries.get(curr_name)
+            if not curr_country:
+                continue
+            
+            # 1. Распространение через альянсы (30% урона союзникам)
+            for alliance in curr_country.alliances:
+                alliance_name = alliance if isinstance(alliance, str) else alliance.get('name', '')
+                for other_name, other_country in self.countries.items():
+                    if other_name == curr_name or other_name in visited:
+                        continue
+                    other_alliance_names = [a if isinstance(a, str) else a.get('name', '') for a in other_country.alliances]
+                    if alliance_name in other_alliance_names:
+                        alliance_transfer = int(damage * 0.3 * factor)
+                        if alliance_transfer > 0:
+                            other_country.take_damage(alliance_transfer)
+                            affected.append({
+                                'country': other_name,
+                                'damage': alliance_transfer,
+                                'connection_type': 'alliance',
+                                'alliance': alliance_name
+                            })
+                            queue.append((other_name, alliance_transfer, factor * 0.3))
+            
+            # 2. Распространение через долговые связи
+            for debtor_name, debt_amount in curr_country.external_debt_holders.items():
+                if debtor_name in self.countries and debtor_name not in visited:
+                    strength = min(debt_amount / 1000, 1.0)
+                    debt_transfer = int(damage * strength * 0.2 * factor)
+                    if debt_transfer > 0:
+                        debtor_country = self.countries[debtor_name]
+                        debtor_country.take_damage(debt_transfer)
+                        affected.append({
+                            'country': debtor_name,
+                            'damage': debt_transfer,
+                            'connection_type': 'debt',
+                            'amount': debt_amount
+                        })
+                        queue.append((debtor_name, debt_transfer, factor * 0.3))
+            
+            # 3. Распространение через торговые, долговые и энергетические связи
+            relevant_connections = [
+                c for c in self.connections 
+                if c.from_country == curr_name and c.to_country not in visited
+            ]
+            
+            for conn in relevant_connections:
+                if conn.connection_type == 'trade':
+                    transfer = int(damage * conn.strength * self.global_params['contagion_factor'] * factor)
+                elif conn.connection_type == 'debt':
+                    transfer = int(damage * conn.strength * 0.5 * factor)
+                    if transfer > 5 and conn.to_country in self.countries:
+                        creditor = self.countries[conn.to_country]
+                        if creditor.debt > creditor.gdp * 0.9:
+                            transfer = int(transfer * 1.5)
+                elif conn.connection_type == 'energy':
+                    transfer = int(damage * conn.strength * 0.6 * factor)
+                else:
+                    transfer = int(damage * conn.strength * 0.2 * factor)
+                
+                if transfer > 0 and conn.to_country in self.countries:
+                    partner_country = self.countries[conn.to_country]
                     partner_country.take_damage(transfer)
-                    queue.append((partner, transfer, factor * 0.5))
+                    affected.append({
+                        'country': conn.to_country,
+                        'damage': transfer,
+                        'connection_type': conn.connection_type,
+                        'strength': conn.strength
+                    })
+                    queue.append((conn.to_country, transfer, factor * 0.5))
+        
+        return affected
 
-    def apply_attack(self, attack_name: str, target_name: str) -> Tuple[bool, str]:
+    def _spread_damage(self, source_name: str, initial_damage: int):
+        """Распространяет урон через все типы связей (без отслеживания)"""
+        self._spread_damage_with_tracking(source_name, initial_damage)
+
+    def apply_attack(self, attack_name: str, target_name: str) -> Tuple[bool, str, dict]:
         if self.game_over:
-            return False, "Игра окончена"
+            return False, "Игра окончена", {}
 
         attack = next(a for a in self.attacks if a.name == attack_name)
         target = self.countries[target_name]
         cost = int(attack.base_cost * target.weight)
         if self.ip < cost:
-            return False, f"Не хватает IP! Нужно: {cost}"
+            return False, f"Недостаточно очков влияния (нужно {cost})", {}
 
-        success_chance = 70 - (self.reveal // 2)
-        success = random.randint(1, 100) <= success_chance
+        success = random.randint(1, 100) <= 62
 
-        multiplier = self._get_attack_multiplier(attack, target) if success else 1.0
+        multiplier, explanation, lesson = self._get_attack_multiplier_and_explanation(attack, target)
+        if not success:
+            multiplier = 0.3
+            explanation = "Операция провалена — цель устояла."
+
+        # ── Стоимость с учётом давления ────────────────────────────────────────
+        reveal_cost_mult = 1.0
+        if self.reveal >= 70:
+            reveal_cost_mult = 1.30
+        elif self.reveal >= 40:
+            reveal_cost_mult = 1.15
+        effective_cost = int(cost * reveal_cost_mult)
+        if self.ip < effective_cost:
+            return False, f"Недостаточно очков влияния (нужно {effective_cost}, есть {self.ip})", {}
+
         damage = int(attack.base_damage * multiplier) if success else int(attack.base_damage * 0.3)
-        risk = self._calculate_risk(attack, target)
-
         target.take_damage(damage)
-        self.ip -= cost
+        self.ip -= effective_cost
+
+        attack_details = {
+            'explanation': explanation,
+            'lesson': lesson,
+            'multiplier': round(multiplier, 2),
+            'damage': damage,
+            'affected_countries': []
+        }
+
+        # ── Reveal: растёт от плохих/шумных операций ───────────────────────────
+        # Эффективная атака (mult ≥ 1.5): +3  — чистый удар, мало следов
+        # Нормальная атака  (mult 1–1.5):  +6
+        # Неэффективная     (mult < 1):    +11 — много шума, мало результата
+        # Провал:                          +15 — спалились
+        # Защищённая цель (альянс):        +3  — сложная цель, больше следов
+        if success:
+            reveal_delta = 3 if multiplier >= 1.5 else 6 if multiplier >= 1.0 else 11
+        else:
+            reveal_delta = 15
+        _, alliance_note = self._get_alliance_defense(target, attack.attack_type)
+        if alliance_note:
+            reveal_delta += 3
+
+        self.reveal = min(100, self.reveal + reveal_delta)
 
         if success:
-            self.reveal = min(100, self.reveal + risk)
-            bonus = int(cost * 0.35)
+            bonus = int(effective_cost * 0.30)
             self.ip += bonus
-            msg = f"✅ УСПЕХ! {attack.name} | Урон: {damage} | Риск: +{risk} | Бонус: +{bonus} IP"
-            self._spread_damage(target_name, damage)
+            msg = f"{attack.name} → {target_name}: -{damage} | +{bonus} IP | давление +{reveal_delta}"
+            affected = self._spread_damage_with_tracking(target_name, damage)
+            attack_details['affected_countries'] = affected
+            if lesson:
+                self.last_lesson = lesson
         else:
-            penalty = int(cost * 0.2)
+            penalty = int(effective_cost * 0.1)
             self.ip = max(0, self.ip - penalty)
-            msg = f"❌ ПРОВАЛ! {attack.name} | Урон: {damage} | Потеряно: {penalty} IP"
+            msg = f"{attack.name} → {target_name}: провал | -{penalty} IP | давление +{reveal_delta}"
+
+        # Добавляем в details информацию о давлении
+        attack_details['reveal_delta'] = reveal_delta
+        attack_details['reveal_now'] = self.reveal
 
         if self.reveal >= 100:
             self.game_over = True
-            msg += "\n🕵️‍♂️ ВАС РАСКРЫЛИ! Игра окончена."
+            msg += " | Операция раскрыта — игра окончена"
 
         avg_health = sum(c.economic_health for c in self.countries.values()) / len(self.countries)
         if avg_health <= self.global_params['world_health_threshold']:
             self.game_over = True
             self.win = True
-            msg += "\n🌍 ГЛОБАЛЬНЫЙ КОЛЛАПС! Вы победили."
 
-        return success, msg
+        return success, msg, attack_details
+
+    def _check_economic_laws(self, attack: Attack, target: Country, damage: int) -> Optional[str]:
+        """Проверяет, не проявился ли какой-то экономический закон, и возвращает урок"""
+        lessons = []
+        
+        # Эффект домино
+        if damage > 10:
+            affected_partners = [c for c in self.countries.values() 
+                               if c.name != target.name and c.economic_health < target.economic_health]
+            if len(affected_partners) >= 2:
+                lessons.append("ЭФФЕКТ ДОМИНО: Кризис распространился на торговых партнёров!")
+        
+        # Долговая ловушка
+        if target.debt > target.gdp * 0.9 and attack.attack_type in ['финансовая', 'санкции']:
+            lessons.append("ДОЛГОВАЯ ЛОВУШКА: Высокий долг усугубил кризис!")
+        
+        # Энергетическая уязвимость
+        if target.energy_import > 0.4 and attack.attack_type == 'энергетическая':
+            lessons.append("ЭНЕРГЕТИЧЕСКАЯ УЯЗВИМОСТЬ: Зависимость от импорта энергии усилила урон!")
+        
+        # Бегство капитала
+        if target.foreign_reserves < 200 and attack.attack_type in ['финансовая', 'санкции']:
+            lessons.append("БЕГСТВО КАПИТАЛА: Низкие резервы не смогли защитить экономику!")
+        
+        if lessons:
+            return " ".join(lessons)
+        return None
 
     def daily_update(self):
         if self.game_over:
             return
         self.day += 1
         self.ip = max(0, self.ip - self.global_params['daily_maintenance_cost'])
-        self.reveal = max(0, self.reveal - self.global_params['reveal_decay'])
+        # Давление спадает само по себе — просто ждать тоже стратегия
+        self.reveal = max(0, self.reveal - self.global_params.get('reveal_decay', 2))
+        # Сбрасываем лимит квиза на новый день
+        if self.day > self.quiz_reset_day:
+            self.quiz_today_count = 0
+            self.quiz_reset_day = self.day
 
         for country in self.countries.values():
-            if country.economic_health > 50:
-                regen = self.global_params['recovery_rate_high']
-                # ускоренное восстановление для членов ЕС или БРИКС
-                for alliance in country.alliances:
-                    name = alliance if isinstance(alliance, str) else alliance.get('name', '')
-                    if name in ('ЕС', 'БРИКС'):
-                        regen += 1
-                        break
+            h = country.economic_health
+            if h > 60:
+                # Зона 60–100: активное восстановление — сложно удержать под ударом
+                regen = self.global_params['recovery_rate_high']  # = 3
+                bloc_mult = self._get_trade_bloc_multiplier(country)
+                regen = int(regen * bloc_mult)
+                regen = int(regen * country.get_hdi_recovery_bonus())
+                country.recover(max(1, regen))
+            elif h > 40:
+                # Зона 40–60: медленное восстановление — "тянут из болота"
+                regen = self.global_params.get('recovery_rate_medium', 1)
                 country.recover(regen)
+            elif h > 20:
+                # Зона 20–40: стабильный упадок
+                country.take_damage(1)
             else:
-                if country.economic_health < 20:
-                    country.take_damage(3)
-                elif country.economic_health < 30:
-                    country.take_damage(2)
-                elif country.economic_health < 50:
-                    country.take_damage(1)
+                # Ниже 20%: каскадный коллапс
+                country.take_damage(3)
 
         if random.random() < 0.2:
             self._trigger_random_event()
 
+        if self.reveal >= 100:
+            self.game_over = True
+            self.last_event = "Операция раскрыта"
         avg_health = sum(c.economic_health for c in self.countries.values()) / len(self.countries)
         if avg_health <= self.global_params['world_health_threshold']:
             self.game_over = True
             self.win = True
-            self.last_event = "Глобальный коллапс! Победа!"
-        elif self.reveal >= 100:
-            self.game_over = True
-            self.last_event = "Вас раскрыли! Поражение."
+            self.last_event = "Глобальный коллапс"
 
     def _trigger_random_event(self):
         events = [
-            ("💵 Спонсорская помощь", lambda: setattr(self, 'ip', self.ip + 150)),
-            ("🔍 Утечка информации", lambda: setattr(self, 'reveal', min(100, self.reveal + 15))),
-            ("🌍 Пандемия", lambda: [c.take_damage(int(c.economic_health * 0.05)) for c in self.countries.values()]),
-            ("🏦 Банковский кризис", lambda: [c.take_damage(int(c.economic_health * 0.03)) for c in self.countries.values()]),
-            ("💡 Технологический прорыв", lambda: self.countries['Китай'].recover(10)),
-            ("🛢️ Нефтяной кризис", lambda: self.countries['Германия'].take_damage(8)),
-            ("🌪️ Природная катастрофа", lambda: random.choice(list(self.countries.values())).take_damage(10)),
-            ("📉 Мировая рецессия", lambda: [c.take_damage(5) for c in self.countries.values() if c.economic_health > 50]),
-            ("🤝 Торговое соглашение", lambda: [c.recover(5) for c in self.countries.values() if c.export_oriented]),
-            ("⚡ Киберщит", lambda: setattr(self, 'reveal', max(0, self.reveal - 10))),
+            ("Финансовая поддержка", lambda: setattr(self, 'ip', self.ip + 150)),
+            ("Пандемия", lambda: [c.take_damage(int(c.economic_health * 0.05)) for c in self.countries.values()]),
+            ("Банковский кризис", lambda: [c.take_damage(int(c.economic_health * 0.03)) for c in self.countries.values()]),
+            ("Нефтяной шок", lambda: [c.take_damage(8) for c in self.countries.values() if c.energy_import > 0.4]),
+            ("Природная катастрофа", lambda: random.choice(list(self.countries.values())).take_damage(12)),
+            ("Глобальная рецессия", lambda: [c.take_damage(5) for c in self.countries.values() if c.economic_health > 50]),
+            ("Торговое соглашение", lambda: [c.recover(5) for c in self.countries.values() if c.export_oriented]),
+            ("Долговой кризис", lambda: self._debt_crisis_event()),
+            ("Бегство капитала", lambda: self._capital_flight_event()),
         ]
         name, effect = random.choice(events)
         effect()
         self.last_event = name
+
+    def _debt_crisis_event(self):
+        """Событие: долговой кризис в случайной стране с высоким долгом"""
+        high_debt_countries = [c for c in self.countries.values() if c.debt > c.gdp * 0.9]
+        if high_debt_countries:
+            victim = random.choice(high_debt_countries)
+            victim.take_damage(15)
+            self.last_event = f"💸 Долговой кризис в {victim.name}!"
+
+    def _capital_flight_event(self):
+        """Событие: бегство капитала из страны с низкими резервами"""
+        low_reserve_countries = [c for c in self.countries.values() if c.foreign_reserves < 200]
+        if low_reserve_countries:
+            victim = random.choice(low_reserve_countries)
+            victim.take_damage(10)
+            self.last_event = f"📉 Бегство капитала из {victim.name}!"
+
+    def _reveal_level(self) -> str:
+        if self.reveal < 40: return 'low'
+        if self.reveal < 70: return 'medium'
+        if self.reveal < 90: return 'high'
+        return 'critical'
 
     def get_state(self) -> dict:
         avg_health = sum(c.economic_health for c in self.countries.values()) / len(self.countries)
         return {
             'ip': self.ip,
             'reveal': self.reveal,
+            'reveal_level': self._reveal_level(),
+            'quiz_remaining': max(0, 3 - self.quiz_today_count),
             'day': self.day,
             'game_over': self.game_over,
             'win': self.win,
             'last_event': self.last_event,
+            'last_lesson': self.last_lesson,
             'global_health': int(avg_health),
             'countries': [
                 {
@@ -250,7 +743,17 @@ class GlobalEconomyGame:
                     'energy_import': c.energy_import,
                     'energy_export': c.energy_export,
                     'trade_partners': c.trade_partners,
-                    'alliances': c.alliances
+                    'alliances': c.alliances,
+                    # НОВЫЕ ПОКАЗАТЕЛИ
+                    'foreign_reserves': round(c.foreign_reserves, 1),
+                    'human_development_index': c.human_development_index,
+                    'corruption_perception_index': c.corruption_perception_index,
+                    'central_bank_rate': c.central_bank_rate,
+                    'manufacturing_value_added_pct': c.manufacturing_value_added_pct,
+                    'current_account_balance_pct': round(c.current_account_balance_pct, 1),
+                    'external_debt_holders': c.external_debt_holders,
+                    'energy_dependencies': c.energy_dependencies,
+                    'trade_blocs': c.trade_blocs,
                 }
                 for c in self.countries.values()
             ],
@@ -263,13 +766,16 @@ class GlobalEconomyGame:
                     'tooltip': a.tooltip
                 }
                 for a in self.attacks
-            ]
+            ],
+            'economic_lessons': self.economic_lessons
         }
 
     def to_dict(self):
         return {
             'ip': self.ip,
             'reveal': self.reveal,
+            'quiz_today_count': self.quiz_today_count,
+            'quiz_reset_day': self.quiz_reset_day,
             'day': self.day,
             'game_over': self.game_over,
             'win': self.win,
@@ -290,21 +796,175 @@ class GlobalEconomyGame:
                 'export_oriented': c.export_oriented,
                 'energy_import': c.energy_import,
                 'energy_export': c.energy_export,
-                'initial_health': c.initial_health
+                'initial_health': c.initial_health,
+                # НОВЫЕ ПОКАЗАТЕЛИ
+                'foreign_reserves': c.foreign_reserves,
+                'human_development_index': c.human_development_index,
+                'corruption_perception_index': c.corruption_perception_index,
+                'central_bank_rate': c.central_bank_rate,
+                'manufacturing_value_added_pct': c.manufacturing_value_added_pct,
+                'current_account_balance_pct': c.current_account_balance_pct,
+                'external_debt_holders': c.external_debt_holders,
+                'energy_dependencies': c.energy_dependencies,
+                'trade_blocs': c.trade_blocs,
+                'sanctions_experience': c.sanctions_experience,
             } for c in self.countries.values()},
             'attacks': [a.__dict__ for a in self.attacks]
         }
+
+    # ─── Quiz system ───────────────────────────────────────────────────────
+
+    QUIZ_DAILY_LIMIT = 3
+
+    def get_quiz_question(self) -> dict:
+        """Generate a question. Returns error if daily limit reached."""
+        if self.quiz_today_count >= self.QUIZ_DAILY_LIMIT:
+            return {'error': f'Лимит разведки на сегодня исчерпан. Завтра (день {self.day + 1}) доступно снова.'}
+        pool = self._build_quiz_pool()
+        q = random.choice(pool)
+        self._quiz_answer = q['answer']
+        self._quiz_explanation = q['explanation']
+        self._quiz_reward = q['reward']
+        return {
+            'question': q['question'],
+            'options': q['options'],
+            'hint': q.get('hint', ''),
+            'reward': q['reward'],
+            'remaining': self.QUIZ_DAILY_LIMIT - self.quiz_today_count,
+        }
+
+    def submit_quiz_answer(self, answer: str) -> dict:
+        if not self._quiz_answer:
+            return {'error': 'Нет активного вопроса'}
+        correct = answer.strip() == self._quiz_answer.strip()
+        explanation = self._quiz_explanation
+        reward = self._quiz_reward if correct else 0
+        reveal_bonus = 0
+        if correct:
+            self.ip += reward
+            # Правильный ответ снижает давление — разведка помогает прикрыть следы
+            reveal_bonus = -10
+            self.reveal = max(0, self.reveal + reveal_bonus)
+        self.quiz_today_count += 1
+        self._quiz_answer = ""
+        return {
+            'correct': correct,
+            'ip_gained': reward,
+            'reveal_change': reveal_bonus,
+            'explanation': explanation,
+            'remaining': max(0, self.QUIZ_DAILY_LIMIT - self.quiz_today_count),
+        }
+
+    def _build_quiz_pool(self) -> list:
+        pool = []
+
+        # Dynamic: highest debt
+        by_debt = sorted(self.countries.values(), key=lambda c: c.debt / c.gdp, reverse=True)
+        others = [c.name for c in by_debt[3:]]
+        opts = [by_debt[0].name] + random.sample(others, min(3, len(others)))
+        random.shuffle(opts)
+        pool.append({
+            'question': 'Какая страна сейчас имеет наибольший долг относительно ВВП?',
+            'options': opts[:4],
+            'answer': by_debt[0].name,
+            'reward': 200,
+            'hint': 'Смотри колонку Долг/ВВП в Аналитике.',
+            'explanation': (f"{by_debt[0].name}: долг {round(by_debt[0].debt / by_debt[0].gdp * 100)}% ВВП. "
+                           "Это как ипотека больше годового дохода — каждый новый кредит стоит дороже."),
+        })
+
+        # Dynamic: most energy-dependent importer
+        by_energy = sorted(self.countries.values(), key=lambda c: c.energy_import, reverse=True)
+        if by_energy[0].energy_import > 0.3:
+            others_e = [c.name for c in by_energy[3:]]
+            opts_e = [by_energy[0].name] + random.sample(others_e, min(3, len(others_e)))
+            random.shuffle(opts_e)
+            pool.append({
+                'question': 'Какая страна больше всего зависит от импорта энергии?',
+                'options': opts_e[:4],
+                'answer': by_energy[0].name,
+                'reward': 180,
+                'hint': 'Энергетический шантаж работает против стран с импортом >40%.',
+                'explanation': (f"{by_energy[0].name} импортирует {round(by_energy[0].energy_import * 100)}% энергии. "
+                               "Если поставки перекрыть, останавливаются заводы и растут цены на всё."),
+            })
+
+        # Dynamic: weakest country
+        weakest = min(self.countries.values(), key=lambda c: c.economic_health)
+        if weakest.economic_health < 78:
+            others_w = [c.name for c in sorted(self.countries.values(), key=lambda c: c.economic_health, reverse=True)[:5]]
+            opts_w = [weakest.name] + random.sample(others_w, min(3, len(others_w)))
+            random.shuffle(opts_w)
+            pool.append({
+                'question': 'Какая страна сейчас в наихудшем экономическом состоянии?',
+                'options': opts_w[:4],
+                'answer': weakest.name,
+                'reward': 160,
+                'hint': 'Ниже 20% — страна начинает разрушаться сама.',
+                'explanation': (f"{weakest.name}: здоровье {weakest.economic_health}%. "
+                               "Ниже 20% запускается автоматический коллапс — соседи тоже пострадают."),
+            })
+
+        # Static theory questions
+        pool += [
+            {
+                'question': 'Что происходит, когда государственный долг превышает 100% ВВП?',
+                'options': ['Рост ускоряется', 'Инвесторы требуют более высокие ставки по облигациям', 'Экспорт увеличивается', 'Инфляция исчезает'],
+                'answer': 'Инвесторы требуют более высокие ставки по облигациям',
+                'reward': 180,
+                'hint': 'Чем рискованнее заёмщик, тем дороже ему занимать.',
+                'explanation': ('При долге >90% ВВП рынки считают страну ненадёжной и требуют более высокий процент. '
+                               'Долг растёт ещё быстрее — это долговая ловушка.'),
+            },
+            {
+                'question': 'Почему большие золотовалютные резервы защищают страну от финансовых атак?',
+                'options': ['Страна может напечатать больше денег', 'Центробанк скупает нацвалюту и удерживает курс', 'Резервы увеличивают ВВП', 'Долг списывается автоматически'],
+                'answer': 'Центробанк скупает нацвалюту и удерживает курс',
+                'reward': 170,
+                'hint': 'Резервы — это финансовый щит от спекулянтов.',
+                'explanation': ('Когда спекулянты атакуют валюту, центробанк выходит на рынок и продаёт резервы, '
+                               'покупая нацвалюту. Без резервов курс рухнет мгновенно.'),
+            },
+            {
+                'question': 'Почему кибератака опаснее всего для передовых цифровых экономик?',
+                'options': ['У них нет армии', 'Их финансы и расчёты полностью зависят от IT-систем', 'Они производят больше товаров', 'У них нет резервов'],
+                'answer': 'Их финансы и расчёты полностью зависят от IT-систем',
+                'reward': 190,
+                'hint': 'Парадокс: чем умнее экономика, тем уязвимее к цифровым ударам.',
+                'explanation': ('США, Япония, Южная Корея — биржи, банки, расчёты работают через единые IT-сети. '
+                               'Атака на межбанковские системы может заморозить всю торговлю за часы.'),
+            },
+            {
+                'question': 'Что такое "эффект заражения" в макроэкономике?',
+                'options': ['Болезнь населения', 'Кризис в одной стране распространяется на партнёров через торговлю и долги', 'Рост инфляции у соседей', 'Рост военных расходов'],
+                'answer': 'Кризис в одной стране распространяется на партнёров через торговлю и долги',
+                'reward': 150,
+                'hint': 'Кризис 2008 в США → весь мир. Почему?',
+                'explanation': ('Банки США держали ипотечные облигации → когда они упали, европейские банки потеряли деньги '
+                               '→ кредиты стали дороже → торговля упала. Всё связано через финансовые цепочки.'),
+            },
+        ]
+        return pool
 
     @classmethod
     def from_dict(cls, data):
         instance = cls.__new__(cls)
         instance.ip = data['ip']
-        instance.reveal = data['reaveal'] if 'reaveal' in data else data['reveal']
+        instance.reveal = data.get('reveal', 0)
+        instance.quiz_today_count = data.get('quiz_today_count', 0)
+        instance.quiz_reset_day = data.get('quiz_reset_day', 0)
         instance.day = data['day']
         instance.game_over = data['game_over']
         instance.win = data['win']
         instance.last_event = data.get('last_event', '')
         instance.global_params = data['global_params']
+        instance.economic_lessons = data.get('economic_lessons', {})
+        instance.last_lesson = data.get('last_lesson', None)
+        instance.connections = []
+        instance.discovered_laws = set()
+        instance._quiz_answer = ""
+        instance._quiz_explanation = ""
+        instance._quiz_reward = 0
 
         instance.countries = {}
         for name, cdata in data['countries'].items():
@@ -322,10 +982,22 @@ class GlobalEconomyGame:
                 'digitalization': cdata.get('digitalization', 50),
                 'export_oriented': cdata.get('export_oriented', False),
                 'energy_import': cdata.get('energy_import', 0),
-                'energy_export': cdata.get('energy_export', 0)
+                'energy_export': cdata.get('energy_export', 0),
+                # НОВЫЕ ПОКАЗАТЕЛИ
+                'foreign_reserves_usd_billion': cdata.get('foreign_reserves', 100),
+                'human_development_index': cdata.get('human_development_index', 0.7),
+                'corruption_perception_index': cdata.get('corruption_perception_index', 50),
+                'central_bank_rate': cdata.get('central_bank_rate', 5.0),
+                'manufacturing_value_added_pct': cdata.get('manufacturing_value_added_pct', 15.0),
+                'current_account_balance_pct': cdata.get('current_account_balance_pct', 0.0),
+                'external_debt_holders': cdata.get('external_debt_holders', {}),
+                'energy_dependencies': cdata.get('energy_dependencies', {}),
+                'trade_blocs': cdata.get('trade_blocs', []),
             })
             c.initial_health = cdata['initial_health']
+            c.sanctions_experience = cdata.get('sanctions_experience', False)
             instance.countries[name] = c
 
         instance.attacks = [Attack(a) for a in data['attacks']]
+        instance._build_connection_graph()
         return instance

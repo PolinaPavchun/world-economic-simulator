@@ -21,7 +21,7 @@
         "Китай": 0.25,
         "Канада": 0.18,
         "Мексика": 0.15,
-        "Япония": 0.10,
+        "Япония": 0.1,
         "Германия": 0.08
       },
       "economic_health": 85,
@@ -32,8 +32,29 @@
       "trade_balance": -0.8,
       "digitalization": 90,
       "export_oriented": false,
-      "energy_import": 0.30,
-      "energy_export": 0.10
+      "energy_import": 0.3,
+      "energy_export": 0.1,
+      "foreign_reserves_usd_billion": 250,
+      "human_development_index": 0.92,
+      "corruption_perception_index": 67,
+      "external_debt_holders": {
+        "Китай": 850,
+        "Япония": 1100,
+        "Великобритания": 350,
+        "Канада": 300,
+        "Люксембург": 320
+      },
+      "energy_dependencies": {
+        "Канада": 0.05,
+        "Мексика": 0.15,
+        "Саудовская Аравия": 0.1
+      },
+      "trade_blocs": [
+        "USMCA"
+      ],
+      "central_bank_rate": 5.5,
+      "manufacturing_value_added_pct": 11.0,
+      "current_account_balance_pct": -3.0
     },
     {
       "name": "Китай",
@@ -49,9 +70,9 @@
         }
       ],
       "trade_partners": {
-        "США": 0.20,
+        "США": 0.2,
         "Япония": 0.12,
-        "Южная Корея": 0.10,
+        "Южная Корея": 0.1,
         "Германия": 0.08,
         "Россия": 0.06
       },
@@ -64,7 +85,26 @@
       "digitalization": 75,
       "export_oriented": true,
       "energy_import": 0.25,
-      "energy_export": 0.05
+      "energy_export": 0.05,
+      "foreign_reserves_usd_billion": 3200,
+      "human_development_index": 0.77,
+      "corruption_perception_index": 45,
+      "external_debt_holders": {
+        "США": 850,
+        "Япония": 120,
+        "Германия": 80
+      },
+      "energy_dependencies": {
+        "Россия": 0.15,
+        "Саудовская Аравия": 0.18,
+        "Ирак": 0.12
+      },
+      "trade_blocs": [
+        "RCEP"
+      ],
+      "central_bank_rate": 3.45,
+      "manufacturing_value_added_pct": 27.0,
+      "current_account_balance_pct": 1.8
     },
     {
       "name": "Россия",
@@ -81,7 +121,7 @@
       ],
       "trade_partners": {
         "Китай": 0.15,
-        "Германия": 0.10,
+        "Германия": 0.1,
         "Турция": 0.08,
         "Индия": 0.07
       },
@@ -94,7 +134,21 @@
       "digitalization": 65,
       "export_oriented": true,
       "energy_import": 0.05,
-      "energy_export": 0.60
+      "energy_export": 0.6,
+      "foreign_reserves_usd_billion": 580,
+      "human_development_index": 0.82,
+      "corruption_perception_index": 28,
+      "external_debt_holders": {
+        "Китай": 150,
+        "Германия": 80
+      },
+      "energy_dependencies": {},
+      "trade_blocs": [
+        "ЕАЭС"
+      ],
+      "central_bank_rate": 16.0,
+      "manufacturing_value_added_pct": 13.0,
+      "current_account_balance_pct": 4.0
     },
     {
       "name": "Германия",
@@ -116,7 +170,7 @@
       "trade_partners": {
         "Франция": 0.15,
         "США": 0.12,
-        "Китай": 0.10,
+        "Китай": 0.1,
         "Нидерланды": 0.08,
         "Великобритания": 0.07
       },
@@ -129,7 +183,27 @@
       "digitalization": 85,
       "export_oriented": true,
       "energy_import": 0.45,
-      "energy_export": 0.05
+      "energy_export": 0.05,
+      "foreign_reserves_usd_billion": 230,
+      "human_development_index": 0.95,
+      "corruption_perception_index": 80,
+      "external_debt_holders": {
+        "Франция": 200,
+        "США": 150,
+        "Великобритания": 100
+      },
+      "energy_dependencies": {
+        "Россия": 0.4,
+        "Норвегия": 0.2,
+        "Нидерланды": 0.15
+      },
+      "trade_blocs": [
+        "ЕС",
+        "ЕАСТ"
+      ],
+      "central_bank_rate": 4.5,
+      "manufacturing_value_added_pct": 23.0,
+      "current_account_balance_pct": 6.5
     },
     {
       "name": "Франция",
@@ -150,8 +224,8 @@
       ],
       "trade_partners": {
         "Германия": 0.18,
-        "Испания": 0.10,
-        "Италия": 0.10,
+        "Испания": 0.1,
+        "Италия": 0.1,
         "США": 0.08
       },
       "economic_health": 79,
@@ -162,8 +236,27 @@
       "trade_balance": -0.2,
       "digitalization": 78,
       "export_oriented": false,
-      "energy_import": 0.40,
-      "energy_export": 0.08
+      "energy_import": 0.4,
+      "energy_export": 0.08,
+      "foreign_reserves_usd_billion": 180,
+      "human_development_index": 0.91,
+      "corruption_perception_index": 71,
+      "external_debt_holders": {
+        "Германия": 180,
+        "Великобритания": 120,
+        "США": 100
+      },
+      "energy_dependencies": {
+        "Россия": 0.25,
+        "Норвегия": 0.15,
+        "Алжир": 0.1
+      },
+      "trade_blocs": [
+        "ЕС"
+      ],
+      "central_bank_rate": 4.5,
+      "manufacturing_value_added_pct": 10.0,
+      "current_account_balance_pct": -0.5
     },
     {
       "name": "Великобритания",
@@ -185,7 +278,7 @@
       "trade_partners": {
         "США": 0.15,
         "Германия": 0.12,
-        "Франция": 0.10,
+        "Франция": 0.1,
         "Нидерланды": 0.07
       },
       "economic_health": 78,
@@ -197,7 +290,24 @@
       "digitalization": 82,
       "export_oriented": false,
       "energy_import": 0.35,
-      "energy_export": 0.12
+      "energy_export": 0.12,
+      "foreign_reserves_usd_billion": 200,
+      "human_development_index": 0.93,
+      "corruption_perception_index": 73,
+      "external_debt_holders": {
+        "США": 200,
+        "Германия": 150,
+        "Япония": 100
+      },
+      "energy_dependencies": {
+        "Норвегия": 0.3,
+        "Россия": 0.15,
+        "Катар": 0.1
+      },
+      "trade_blocs": [],
+      "central_bank_rate": 5.25,
+      "manufacturing_value_added_pct": 9.0,
+      "current_account_balance_pct": -3.5
     },
     {
       "name": "Япония",
@@ -223,7 +333,26 @@
       "digitalization": 88,
       "export_oriented": true,
       "energy_import": 0.85,
-      "energy_export": 0.00
+      "energy_export": 0.0,
+      "foreign_reserves_usd_billion": 1300,
+      "human_development_index": 0.93,
+      "corruption_perception_index": 73,
+      "external_debt_holders": {
+        "США": 1100,
+        "Китай": 120,
+        "Великобритания": 80
+      },
+      "energy_dependencies": {
+        "Саудовская Аравия": 0.3,
+        "ОАЭ": 0.2,
+        "Австралия": 0.15
+      },
+      "trade_blocs": [
+        "CPTPP"
+      ],
+      "central_bank_rate": 0.1,
+      "manufacturing_value_added_pct": 20.0,
+      "current_account_balance_pct": 3.0
     },
     {
       "name": "Индия",
@@ -240,7 +369,7 @@
       ],
       "trade_partners": {
         "Китай": 0.12,
-        "США": 0.10,
+        "США": 0.1,
         "ОАЭ": 0.08,
         "Саудовская Аравия": 0.07
       },
@@ -252,8 +381,27 @@
       "trade_balance": -0.4,
       "digitalization": 55,
       "export_oriented": true,
-      "energy_import": 0.40,
-      "energy_export": 0.02
+      "energy_import": 0.4,
+      "energy_export": 0.02,
+      "foreign_reserves_usd_billion": 600,
+      "human_development_index": 0.64,
+      "corruption_perception_index": 40,
+      "external_debt_holders": {
+        "США": 100,
+        "Китай": 80,
+        "Великобритания": 60
+      },
+      "energy_dependencies": {
+        "Ирак": 0.25,
+        "Саудовская Аравия": 0.2,
+        "ОАЭ": 0.15
+      },
+      "trade_blocs": [
+        "SAARC"
+      ],
+      "central_bank_rate": 6.5,
+      "manufacturing_value_added_pct": 15.0,
+      "current_account_balance_pct": -1.5
     },
     {
       "name": "Бразилия",
@@ -265,7 +413,7 @@
         }
       ],
       "trade_partners": {
-        "Китай": 0.20,
+        "Китай": 0.2,
         "США": 0.12,
         "Аргентина": 0.08
       },
@@ -277,8 +425,23 @@
       "trade_balance": 0.2,
       "digitalization": 60,
       "export_oriented": true,
-      "energy_import": 0.10,
-      "energy_export": 0.25
+      "energy_import": 0.1,
+      "energy_export": 0.25,
+      "foreign_reserves_usd_billion": 350,
+      "human_development_index": 0.77,
+      "corruption_perception_index": 36,
+      "external_debt_holders": {
+        "США": 150,
+        "Китай": 100,
+        "Япония": 50
+      },
+      "energy_dependencies": {},
+      "trade_blocs": [
+        "Mercosur"
+      ],
+      "central_bank_rate": 11.25,
+      "manufacturing_value_added_pct": 11.0,
+      "current_account_balance_pct": -0.5
     },
     {
       "name": "Канада",
@@ -311,7 +474,22 @@
       "digitalization": 80,
       "export_oriented": true,
       "energy_import": 0.05,
-      "energy_export": 0.45
+      "energy_export": 0.45,
+      "foreign_reserves_usd_billion": 120,
+      "human_development_index": 0.94,
+      "corruption_perception_index": 76,
+      "external_debt_holders": {
+        "США": 200,
+        "Великобритания": 80,
+        "Япония": 60
+      },
+      "energy_dependencies": {},
+      "trade_blocs": [
+        "USMCA"
+      ],
+      "central_bank_rate": 5.0,
+      "manufacturing_value_added_pct": 10.0,
+      "current_account_balance_pct": 0.5
     },
     {
       "name": "Южная Корея",
@@ -325,7 +503,7 @@
       "trade_partners": {
         "Китай": 0.25,
         "США": 0.12,
-        "Япония": 0.10,
+        "Япония": 0.1,
         "Вьетнам": 0.08
       },
       "economic_health": 81,
@@ -336,8 +514,27 @@
       "trade_balance": 0.5,
       "digitalization": 92,
       "export_oriented": true,
-      "energy_import": 0.90,
-      "energy_export": 0.01
+      "energy_import": 0.9,
+      "energy_export": 0.01,
+      "foreign_reserves_usd_billion": 450,
+      "human_development_index": 0.93,
+      "corruption_perception_index": 63,
+      "external_debt_holders": {
+        "США": 150,
+        "Китай": 100,
+        "Япония": 80
+      },
+      "energy_dependencies": {
+        "Саудовская Аравия": 0.25,
+        "ОАЭ": 0.2,
+        "США": 0.15
+      },
+      "trade_blocs": [
+        "RCEP"
+      ],
+      "central_bank_rate": 3.5,
+      "manufacturing_value_added_pct": 25.0,
+      "current_account_balance_pct": 4.0
     },
     {
       "name": "Австралия",
@@ -349,7 +546,7 @@
         }
       ],
       "trade_partners": {
-        "Китай": 0.30,
+        "Китай": 0.3,
         "Япония": 0.15,
         "США": 0.08,
         "Южная Корея": 0.07
@@ -362,8 +559,23 @@
       "trade_balance": 0.3,
       "digitalization": 75,
       "export_oriented": true,
-      "energy_import": 0.10,
-      "energy_export": 0.50
+      "energy_import": 0.1,
+      "energy_export": 0.5,
+      "foreign_reserves_usd_billion": 55,
+      "human_development_index": 0.96,
+      "corruption_perception_index": 75,
+      "external_debt_holders": {
+        "Китай": 100,
+        "Япония": 80,
+        "США": 60
+      },
+      "energy_dependencies": {},
+      "trade_blocs": [
+        "RCEP"
+      ],
+      "central_bank_rate": 4.35,
+      "manufacturing_value_added_pct": 6.0,
+      "current_account_balance_pct": 1.0
     },
     {
       "name": "Мексика",
@@ -375,7 +587,7 @@
         }
       ],
       "trade_partners": {
-        "США": 0.80,
+        "США": 0.8,
         "Китай": 0.05,
         "Канада": 0.03
       },
@@ -387,8 +599,26 @@
       "trade_balance": -0.2,
       "digitalization": 55,
       "export_oriented": true,
-      "energy_import": 0.20,
-      "energy_export": 0.15
+      "energy_import": 0.2,
+      "energy_export": 0.15,
+      "foreign_reserves_usd_billion": 210,
+      "human_development_index": 0.78,
+      "corruption_perception_index": 31,
+      "external_debt_holders": {
+        "США": 200,
+        "Канада": 50,
+        "Испания": 40
+      },
+      "energy_dependencies": {
+        "США": 0.5,
+        "Канада": 0.2
+      },
+      "trade_blocs": [
+        "USMCA"
+      ],
+      "central_bank_rate": 11.0,
+      "manufacturing_value_added_pct": 18.0,
+      "current_account_balance_pct": -0.5
     },
     {
       "name": "Турция",
@@ -400,8 +630,8 @@
         }
       ],
       "trade_partners": {
-        "Германия": 0.10,
-        "Россия": 0.10,
+        "Германия": 0.1,
+        "Россия": 0.1,
         "Китай": 0.08,
         "Италия": 0.06
       },
@@ -413,8 +643,25 @@
       "trade_balance": -0.6,
       "digitalization": 60,
       "export_oriented": false,
-      "energy_import": 0.70,
-      "energy_export": 0.05
+      "energy_import": 0.7,
+      "energy_export": 0.05,
+      "foreign_reserves_usd_billion": 130,
+      "human_development_index": 0.84,
+      "corruption_perception_index": 36,
+      "external_debt_holders": {
+        "Германия": 80,
+        "Великобритания": 60,
+        "Италия": 50
+      },
+      "energy_dependencies": {
+        "Россия": 0.4,
+        "Иран": 0.2,
+        "Азербайджан": 0.15
+      },
+      "trade_blocs": [],
+      "central_bank_rate": 50.0,
+      "manufacturing_value_added_pct": 19.0,
+      "current_account_balance_pct": -4.0
     },
     {
       "name": "Саудовская Аравия",
@@ -423,7 +670,7 @@
       "trade_partners": {
         "Китай": 0.18,
         "США": 0.12,
-        "Япония": 0.10,
+        "Япония": 0.1,
         "Индия": 0.09
       },
       "economic_health": 75,
@@ -434,8 +681,23 @@
       "trade_balance": 0.7,
       "digitalization": 70,
       "export_oriented": true,
-      "energy_import": 0.00,
-      "energy_export": 0.80
+      "energy_import": 0.0,
+      "energy_export": 0.8,
+      "foreign_reserves_usd_billion": 450,
+      "human_development_index": 0.88,
+      "corruption_perception_index": 51,
+      "external_debt_holders": {
+        "Китай": 80,
+        "США": 60,
+        "Япония": 40
+      },
+      "energy_dependencies": {},
+      "trade_blocs": [
+        "GCC"
+      ],
+      "central_bank_rate": 5.75,
+      "manufacturing_value_added_pct": 7.0,
+      "current_account_balance_pct": 8.0
     },
     {
       "name": "ЮАР",
@@ -448,7 +710,7 @@
       ],
       "trade_partners": {
         "Китай": 0.15,
-        "США": 0.10,
+        "США": 0.1,
         "Германия": 0.08,
         "Индия": 0.07
       },
@@ -461,86 +723,166 @@
       "digitalization": 60,
       "export_oriented": true,
       "energy_import": 0.15,
-      "energy_export": 0.10
+      "energy_export": 0.1,
+      "foreign_reserves_usd_billion": 65,
+      "human_development_index": 0.71,
+      "corruption_perception_index": 41,
+      "external_debt_holders": {
+        "Китай": 80,
+        "Великобритания": 60,
+        "США": 50
+      },
+      "energy_dependencies": {
+        "Нигерия": 0.2,
+        "Ангола": 0.15
+      },
+      "trade_blocs": [
+        "SADC"
+      ],
+      "central_bank_rate": 8.25,
+      "manufacturing_value_added_pct": 12.0,
+      "current_account_balance_pct": -1.0
     }
   ],
   "attacks": [
     {
-      "name": "Кибератака",
-      "base_cost": 100,
-      "base_damage": 10,
+      "name": "Валютная атака",
+      "base_cost": 120,
+      "base_damage": 12,
       "base_risk": 10,
-      "attack_type": "кибер",
-      "tooltip": "Эффективнее против стран с высоким уровнем цифровизации (Digitalization > 80).",
+      "attack_type": "currency_crisis",
+      "tooltip": "Ты обрушиваешь курс национальной валюты через массовую скупку или сброс гособлигаций. Атака эффективна против стран с большим долгом или скудными золотовалютными резервами, у них просто нет защиты для своей валюты. Именно поэтому международные организации требуют от стран держать резервы. Члены G7 получают поддержку МВФ, так что против них атака слабее.",
       "multipliers": {
-        "digitalization_high": 1.5,
-        "digitalization_low": 0.6
-      }
-    },
-    {
-      "name": "Торговая война",
-      "base_cost": 150,
-      "base_damage": 15,
-      "base_risk": 15,
-      "attack_type": "экономическая",
-      "tooltip": "Сильнее бьёт по экспортно-ориентированным экономикам. Слабый эффект против стран с большим внутренним рынком.",
-      "multipliers": {
-        "export_oriented": 1.4,
-        "large_domestic": 0.8
-      }
-    },
-    {
-      "name": "Валютный кризис",
-      "base_cost": 100,
-      "base_damage": 10,
-      "base_risk": 10,
-      "attack_type": "финансовая",
-      "tooltip": "Очень эффективен против стран с высоким госдолгом (> 100% ВВП).",
-      "multipliers": {
+        "high_debt_low_reserves": 2.2,
         "high_debt": 1.5,
-        "low_debt": 0.7
+        "low_reserves": 1.3,
+        "low_debt_high_reserves": 0.4,
+        "conditions": {
+          "debt_gdp_threshold": 80,
+          "reserves_threshold": 200
+        }
       }
     },
     {
-      "name": "Энергоколлапс",
-      "base_cost": 200,
-      "base_damage": 20,
-      "base_risk": 20,
-      "attack_type": "энергетическая",
-      "tooltip": "Сокрушителен для стран-импортёров энергии (>40% импорта). Слаб против экспортёров.",
+      "name": "Долговая спираль",
+      "base_cost": 160,
+      "base_damage": 16,
+      "base_risk": 8,
+      "attack_type": "debt_spiral",
+      "tooltip": "Ты провоцируешь рост процентных ставок по государственному долгу. Страна начинает платить по кредитам всё больше, а выбраться из ямы не может. Атака смертельна для стран, чей долг превышает размер всей их экономики, кредиторы просто перестают верить, что им отдадут. Если долг низкий, рынки спокойны, и атака почти не работает. Члены G7 могут получить экстренные кредиты МВФ, которые сбивают ставки.",
       "multipliers": {
-        "high_energy_import": 1.5,
-        "energy_exporter": 0.6
+        "critical_debt": 2.1,
+        "high_debt": 1.4,
+        "low_debt": 0.3,
+        "conditions": {
+          "critical_threshold": 100,
+          "high_threshold": 80
+        }
       }
     },
     {
-      "name": "Социальный протест",
-      "base_cost": 50,
-      "base_damage": 5,
-      "base_risk": 5,
-      "attack_type": "социальная",
-      "tooltip": "Наиболее эффективен при высокой безработице (>8%) или высокой инфляции (>8%).",
-      "multipliers": {}
+      "name": "Торговые санкции",
+      "base_cost": 150,
+      "base_damage": 14,
+      "base_risk": 9,
+      "attack_type": "trade_blockade",
+      "tooltip": "Ты отрезаешь страну от её главных рынков. Атака эффективна, если у страны один два ключевых торговых партнёра, на которых завязан весь экспорт. Товары некуда девать, экономика задыхается. Если же у страны много равнозначных партнёров, она легко перенаправит потоки. Члены ЕС и БРИКС торгуют внутри своих блоков, поэтому санкции им страшны меньше.",
+      "multipliers": {
+        "high_dependency": 1.8,
+        "concentrated_partners": 1.5,
+        "low_dependency": 0.4,
+        "conditions": {
+          "trade_dependency_threshold": 50
+        }
+      }
     },
     {
-      "name": "Дефолт",
-      "base_cost": 200,
+      "name": "Энергетический шантаж",
+      "base_cost": 180,
       "base_damage": 18,
-      "base_risk": 18,
-      "attack_type": "финансовая",
-      "tooltip": "Максимальный урон по странам с большим долгом и низкими резервами.",
+      "base_risk": 14,
+      "attack_type": "energy_embargo",
+      "tooltip": "Ты перекрываешь поставки газа, нефти или угля. Атака сокрушительна для стран импортёров, которые сильно зависят от чужой энергии, остановка поставок парализует заводы. Но она совершенно бесполезна против стран экспортёров, у которых своих ресурсов в избытке. В Европейском Союзе есть правило: если одна страна остаётся без энергии, соседи делятся запасами, это сбивает силу удара.",
       "multipliers": {
-        "high_debt": 1.6,
-        "low_reserves": 1.3
+        "high_import": 2.0,
+        "energy_exporter": 0.2,
+        "low_import": 0.4,
+        "conditions": {
+          "energy_import_threshold": 40
+        }
+      }
+    },
+    {
+      "name": "Социальный взрыв",
+      "base_cost": 95,
+      "base_damage": 11,
+      "base_risk": 7,
+      "attack_type": "social_unrest",
+      "tooltip": "Ты разжигаешь протесты, используя реальные проблемы населения. Атака усиливается, если в стране высокая инфляция, массовая безработица или сильная коррупция, люди уже злы, ты просто даёшь им искру. Если все показатели в норме, урон остаётся слабым. В странах НАТО демократические институты работают лучше, поэтому протесты там реже перерастают в кризис.",
+      "multipliers": {
+        "triple_threat": 2.5,
+        "both_high": 2.0,
+        "high_inflation": 1.7,
+        "high_unemployment": 1.9,
+        "high_corruption": 1.5,
+        "low_all": 0.4,
+        "conditions": {
+          "inflation_threshold": 8,
+          "unemployment_threshold": 10,
+          "corruption_threshold": 35
+        }
+      }
+    },
+    {
+      "name": "Кибератака",
+      "base_cost": 130,
+      "base_damage": 12,
+      "base_risk": 13,
+      "attack_type": "cyber_attack",
+      "tooltip": "Ты атакуешь банки, биржи и платёжные системы. Здесь работает парадокс: чем страна современнее и цифровизированнее, тем сильнее урон, передовые экономики тотально зависят от интернета и компьютеров. А вот слаборазвитые страны почти не чувствуют удара, потому что их экономика работает и без IT. Участники альянса Five Eyes обмениваются разведданными и видят киберугрозы на подходе.",
+      "multipliers": {
+        "high_digital": 1.9,
+        "mid_digital": 1.0,
+        "low_digital": 0.4,
+        "conditions": {
+          "high_threshold": 75,
+          "mid_threshold": 55
+        }
       }
     }
   ],
   "global_params": {
     "world_health_threshold": 30,
-    "contagion_factor": 0.35,
-    "recovery_rate_high": 2,
-    "recovery_rate_low": 0.5,
-    "daily_maintenance_cost": 8,
-    "reveal_decay": 2
+    "contagion_factor": 0.45,
+    "recovery_rate_high": 3,
+    "recovery_rate_medium": 1,
+    "recovery_rate_low": 0,
+    "daily_maintenance_cost": 10,
+    "reveal_decay": 2,
+    "trade_bloc_bonus": 1.0,
+    "debt_crisis_threshold": 90,
+    "reserve_crisis_threshold": 50
+  },
+  "economic_lessons": {
+    "Эффект домино": {
+      "description": "Кризис в одной стране распространяется на торговых партнёров и кредиторов",
+      "real_example": "Кризис 2008 года в США быстро распространился на Европу через финансовые связи",
+      "data_point": "США экспортируют товаров на $2.5 трлн ежегодно — проблемы в США бьют по всем партнёрам"
+    },
+    "Долговая ловушка": {
+      "description": "Высокий долг увеличивает стоимость новых заимствований",
+      "real_example": "Греция в 2010 году: долг 146% ВВП → процентные ставки 30% → дефолт",
+      "data_point": "Когда долг > 90% ВВП, экономический рост замедляется на 1-2% в год (исследование Reinhart-Rogoff)"
+    },
+    "Энергетическая уязвимость": {
+      "description": "Zависимость от импорта энергии создаёт риски",
+      "real_example": "Европа 2022: зависимость from российского газа → рост цен → рецессия",
+      "data_point": "Германия импортирует 45% энергии — энергоколлапс эффективен против неё"
+    },
+    "Бегство капитала": {
+      "description": "При нестабильности инвесторы выводят деньги из страны",
+      "real_example": "Турция 2018: политический кризис → лира упала на 40% → резервы истощились",
+      "data_point": "Страны с резервами <$100 млрд особенно уязвимы к оттоку капитала"
+    }
   }
 }

@@ -1,0 +1,13 @@
+Backend/__pycache__/
+Backend/venv/
+Backend/*.pyc
+Backend/users.sqlite
+Backend/balance_old.json
+Backend/game_core_old.py
+
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.env.local
+Frontend/src/GamePage_old.jsx
+
+.DS_Store

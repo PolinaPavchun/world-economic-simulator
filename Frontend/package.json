@@ -15,6 +15,7 @@
     "react-dom": "^18.3.1",
     "react-simple-maps": "^3.0.0",
     "react-svg-worldmap": "^2.0.2",
+    "recharts": "^3.8.1",
     "world-geojson": "^3.4.0"
   },
   "devDependencies": {
