@@ -140,8 +140,11 @@ const ECONOMIC_GLOSSARY = {
   "Здоровье экономики": "Общее состояние экономики от 0 до 100%. Ниже 20% — коллапс.",
   "Долг/ВВП": "Насколько страна должна относительно того, что производит. Выше 90% — опасная зона.",
   "Инфляция": "Как быстро растут цены. Норма — 2–5%, выше 8% — уже проблема.",
-  "Резервы": "Золото и валюта на счетах центробанка. Ниже $200 млрд — слабая защита.",
+  "Резервы": "Золото и валюта на счетах центробанка. Ниже $200 млрд — слабая защита от валютных атак.",
   "Торговая зависимость": "Какую долю экономики составляет торговля с другими странами.",
+  "Коррупция (ИКВ)": "Индекс восприятия коррупции от 0 (очень высокая) до 100 (очень низкая). Ниже 35 — коррупция усиливает урон от ЛЮБОЙ атаки на ×1.2–1.5. Коррумпированные чиновники не могут эффективно противостоять кризису.",
+  "ИЧР": "Индекс человеческого развития от 0 до 1: учитывает доходы, образование и продолжительность жизни. Выше 0.9 → страна восстанавливается на +50% быстрее: развитые институты и квалифицированные кадры быстро стабилизируют экономику.",
+  "Энергоимпорт": "Доля потребляемой энергии, которую страна закупает за рубежом. Выше 40% — критическая уязвимость: Энергетический шантаж наносит урон ×2.0. Ниже 40% — страна относительно независима.",
 };
 
 const ALLIANCE_MAP_FILLS = {
@@ -812,6 +815,9 @@ function GamePage({ nickname }) {
                   <th onClick={() => { setGlossaryTerm("Резервы"); setShowGlossary(true); }} style={{ cursor: 'help' }}>Резервы</th>
                   <th>Безработица</th>
                   <th>Цифровизация</th>
+                  <th onClick={() => { setGlossaryTerm("Коррупция (ИКВ)"); setShowGlossary(true); }} style={{ cursor: 'help' }} title="Кликни — подробнее">Коррупция ИКВ</th>
+                  <th onClick={() => { setGlossaryTerm("ИЧР"); setShowGlossary(true); }} style={{ cursor: 'help' }} title="Кликни — подробнее">ИЧР</th>
+                  <th onClick={() => { setGlossaryTerm("Энергоимпорт"); setShowGlossary(true); }} style={{ cursor: 'help' }} title="Кликни — подробнее">Энергоимпорт</th>
                 </tr>
               </thead>
               <tbody>
@@ -832,6 +838,18 @@ function GamePage({ nickname }) {
                       <td style={{ color: c.foreign_reserves < 200 ? '#ff8888' : '#cde' }}>${Math.round(c.foreign_reserves)} млрд</td>
                       <td style={{ color: c.unemployment > 10 ? '#ffaa66' : '#cde' }}>{c.unemployment}%</td>
                       <td style={{ color: c.digitalization > 75 ? '#da77f2' : '#cde' }}>{c.digitalization}%</td>
+                      <td
+                        style={{ color: c.corruption_perception_index < 35 ? '#ff8888' : c.corruption_perception_index < 50 ? '#ffaa66' : '#cde' }}
+                        title={c.corruption_perception_index < 35 ? 'Высокая коррупция → урон атак ×1.5' : c.corruption_perception_index < 50 ? 'Средняя коррупция → урон атак ×1.2' : 'Низкая коррупция — защита в норме'}
+                      >{c.corruption_perception_index}</td>
+                      <td
+                        style={{ color: c.human_development_index > 0.9 ? '#51cf66' : c.human_development_index > 0.8 ? '#8bc34a' : '#cde' }}
+                        title={c.human_development_index > 0.9 ? 'ИЧР >0.9 → восстановление +50%' : c.human_development_index > 0.8 ? 'ИЧР >0.8 → восстановление +20%' : 'Низкий ИЧР — медленное восстановление'}
+                      >{c.human_development_index.toFixed(2)}</td>
+                      <td
+                        style={{ color: c.energy_import > 0.4 ? '#ff8888' : c.energy_import > 0.2 ? '#ffaa66' : '#cde' }}
+                        title={c.energy_import > 0.4 ? `Критическая зависимость — Энергошантаж ×2.0` : c.energy_import > 0.2 ? 'Умеренный импорт — небольшая уязвимость' : 'Низкая энергозависимость — шантаж неэффективен'}
+                      >{Math.round(c.energy_import * 100)}%</td>
                     </tr>
                   );
                 })}
