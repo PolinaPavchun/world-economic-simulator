@@ -1616,8 +1616,15 @@
 .cdc-bar-label {
     display: flex;
     justify-content: space-between;
-    font-size: 11px;
+    align-items: baseline;
+    font-size: 12px;
     color: #88aacc;
+}
+
+.cdc-bar-label span:last-child {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
 }
 
 .cdc-bar-track {
@@ -1641,6 +1648,12 @@
     width: 2px;
     background: #ff8844;
     border-radius: 1px;
+}
+
+.cdc-bar-warn-label {
+    font-size: 10px;
+    color: #556677;
+    margin-top: -1px;
 }
 
 .cdc-alliances {

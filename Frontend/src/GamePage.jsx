@@ -677,23 +677,27 @@ function GamePage({ nickname }) {
                 </div>
                 <div className="cdc-bars">
                   {[
-                    { label: 'Долг/ВВП', val: Math.round(selectedCountryData.debt / selectedCountryData.gdp * 100), max: 210, warn: 90, color: '#e74c3c', unit: '%' },
-                    { label: 'Инфляция', val: selectedCountryData.inflation, max: 30, warn: 8, color: '#f39c12', unit: '%' },
-                    { label: 'Безработица', val: selectedCountryData.unemployment, max: 35, warn: 10, color: '#e67e22', unit: '%' },
-                    { label: 'Резервы', val: selectedCountryData.foreign_reserves, max: 1500, warn: -1, color: '#2ecc71', unit: '$млрд' },
-                  ].map(({ label, val, max, warn, color, unit }) => {
+                    { label: 'Долг/ВВП', val: Math.round(selectedCountryData.debt / selectedCountryData.gdp * 100), max: 210, warn: 90, color: '#e74c3c', unit: '%', warnLabel: 'опасно >90%' },
+                    { label: 'Инфляция', val: selectedCountryData.inflation, max: 30, warn: 8, color: '#f39c12', unit: '%', warnLabel: 'норма до 8%' },
+                    { label: 'Безработица', val: selectedCountryData.unemployment, max: 35, warn: 10, color: '#e67e22', unit: '%', warnLabel: 'норма до 10%' },
+                    { label: 'Резервы', val: selectedCountryData.foreign_reserves, max: 1500, warn: -1, color: '#2ecc71', unit: ' $млрд', warnLabel: '' },
+                  ].map(({ label, val, max, warn, color, unit, warnLabel }) => {
                     const pct = Math.min(100, (val / max) * 100);
                     const hot = warn > 0 && val > warn;
+                    const display = typeof val === 'number' ? (Number.isInteger(val) ? val : val.toFixed(1)) : val;
                     return (
                       <div key={label} className="cdc-bar-row">
                         <div className="cdc-bar-label">
                           <span>{label}</span>
-                          <span style={{ color: hot ? '#ff8888' : '#aaccff' }}>{Number.isInteger(val) ? val : val.toFixed(1)}{unit}</span>
+                          <span style={{ color: hot ? '#ff6666' : '#e0eeff' }}>{display}{unit}</span>
                         </div>
-                        <div className="cdc-bar-track">
+                        <div className="cdc-bar-track" title={warnLabel ? `Черта: ${warnLabel}` : ''}>
                           <div className="cdc-bar-fill" style={{ width: `${pct}%`, background: hot ? '#e74c3c' : color }} />
-                          {warn > 0 && <div className="cdc-bar-threshold" style={{ left: `${(warn / max) * 100}%` }} />}
+                          {warn > 0 && (
+                            <div className="cdc-bar-threshold" style={{ left: `${(warn / max) * 100}%` }} title={warnLabel} />
+                          )}
                         </div>
+                        {warnLabel && <div className="cdc-bar-warn-label">{hot ? '⚠ ' : ''}{warnLabel}</div>}
                       </div>
                     );
                   })}
@@ -729,10 +733,6 @@ function GamePage({ nickname }) {
                 : 'Разведка недоступна до следующего дня'}
             </button>
 
-            <div className="log-list">
-              <div className="log-title">Журнал</div>
-              {log.map((l, i) => <div key={i} className="log-entry">{l}</div>)}
-            </div>
           </div>
         </div>
       )}
