@@ -194,6 +194,14 @@ function GamePage({ nickname }) {
   const [healthHistory, setHealthHistory] = useState([]);
   const [showGlossary, setShowGlossary] = useState(false);
   const [glossaryTerm, setGlossaryTerm] = useState("");
+  // Режим подсказок — показывает/скрывает уязвимости и эффективность атак
+  const [hintMode, setHintMode] = useState(() => localStorage.getItem("hintMode") !== "off");
+  const toggleHintMode = () => setHintMode(prev => {
+    const next = !prev;
+    localStorage.setItem("hintMode", next ? "on" : "off");
+    return next;
+  });
+
   // Quiz state — quizMinimized позволяет скрыть модалку без потери вопроса
   const [quizData, setQuizData] = useState(null);
   const [quizSelected, setQuizSelected] = useState(null);
@@ -605,6 +613,13 @@ function GamePage({ nickname }) {
               {reveal_level === 'high' && `Раскрытие: ${reveal}% — горячо`}
               {reveal_level === 'critical' && `Раскрытие: ${reveal}% — критично`}
             </div>
+            <button
+              className={`hint-mode-btn ${hintMode ? 'hint-on' : 'hint-off'}`}
+              onClick={toggleHintMode}
+              title={hintMode ? 'Подсказки включены — нажми чтобы выключить' : 'Подсказки выключены — нажми чтобы включить'}
+            >
+              {hintMode ? '💡 Подсказки' : '🎯 Без подсказок'}
+            </button>
             <div className="user-badge">
               {nickname}
               <button className="reset-game-btn" onClick={resetGame} title="Новая игра">↺</button>
@@ -687,11 +702,13 @@ function GamePage({ nickname }) {
                   {(selectedCountryData.alliances || []).map((a, i) => { const n = a?.name || a; const col = ALLIANCE_COLORS[n] || '#888'; return <span key={i} className="alliance-badge" style={{ borderColor: col, color: col }}>{n}</span>; })}
                   {(selectedCountryData.trade_blocs || []).map((b, i) => <span key={i} className="trade-bloc-badge">{b}</span>)}
                 </div>
-                <div className="cdc-vulns">
-                  {getVulnerabilities(selectedCountryData).map((v, i) => (
-                    <div key={i} className={`cdc-vuln-item ${v.includes('нет') ? 'safe' : 'warn'}`}>{v}</div>
-                  ))}
-                </div>
+                {hintMode && (
+                  <div className="cdc-vulns">
+                    {getVulnerabilities(selectedCountryData).map((v, i) => (
+                      <div key={i} className={`cdc-vuln-item ${v.includes('нет') ? 'safe' : 'warn'}`}>{v}</div>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="selected-info">Выбери страну на карте</div>
@@ -739,7 +756,11 @@ function GamePage({ nickname }) {
         <div className="attacks-tab">
           <h3>Арсенал</h3>
           <p className="attacks-intro">
-            {selectedCountry ? `Выбрана цель: ${selectedCountry}. Зелёное — атака эффективна, серое — нет.` : "Сначала выбери страну на карте или в Графе."}
+            {selectedCountry
+              ? hintMode
+                ? `Выбрана цель: ${selectedCountry}. Зелёное — атака эффективна, серое — нет.`
+                : `Выбрана цель: ${selectedCountry}.`
+              : "Сначала выбери страну на карте или в Графе."}
           </p>
           <div className="attacks-grid">
             {attacks.map(a => {
@@ -757,7 +778,7 @@ function GamePage({ nickname }) {
                     <span>Урон: ~{a.damage}</span>
                   </div>
                   {a.tooltip && <div className="attack-tooltip-text">{a.tooltip}</div>}
-                  {cond && (
+                  {hintMode && cond && (
                     <div className={`attack-conditions ${cond.canUse ? 'success' : 'weak'}`}>
                       {cond.reason}
                     </div>

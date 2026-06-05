@@ -114,6 +114,35 @@
     text-shadow: 0 0 4px #ff8844;
 }
 
+/* Кнопка переключения режима подсказок */
+.hint-mode-btn {
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid;
+    transition: all 0.2s;
+}
+.hint-mode-btn.hint-on {
+    background: rgba(255, 212, 59, 0.1);
+    border-color: #ffd43b;
+    color: #ffd43b;
+}
+.hint-mode-btn.hint-on:hover {
+    background: rgba(255, 212, 59, 0.2);
+}
+.hint-mode-btn.hint-off {
+    background: rgba(136, 136, 136, 0.1);
+    border-color: #666;
+    color: #999;
+}
+.hint-mode-btn.hint-off:hover {
+    background: rgba(136, 136, 136, 0.2);
+    border-color: #888;
+    color: #bbb;
+}
+
 .game-tabs {
     display: flex;
     justify-content: center;
