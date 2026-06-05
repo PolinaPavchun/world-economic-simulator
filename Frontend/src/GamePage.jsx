@@ -618,7 +618,7 @@ function GamePage({ nickname }) {
               onClick={toggleHintMode}
               title={hintMode ? 'Подсказки включены — нажми чтобы выключить' : 'Подсказки выключены — нажми чтобы включить'}
             >
-              {hintMode ? '💡 Подсказки' : '🎯 Без подсказок'}
+              {hintMode ? 'Подсказки вкл' : 'Подсказки выкл'}
             </button>
             <div className="user-badge">
               {nickname}
