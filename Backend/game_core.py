@@ -1,3 +1,9 @@
+# =============================================================================
+# game_core.py — игровой движок World Economic Simulator
+# Содержит: классы Country, Attack, EconomicConnection и основной класс GlobalEconomyGame
+# Все игровые расчёты (атаки, распространение кризиса, квиз) находятся здесь
+# =============================================================================
+
 import json
 import random
 from typing import Dict, List, Tuple, Optional
@@ -13,6 +19,10 @@ class EconomicConnection:
     strength: float  # 0-1, сила связи
     data: dict  # дополнительные параметры
 
+# -----------------------------------------------------------------------------
+# Country — модель одной страны с её экономическими показателями
+# Данные загружаются из balance.json; методы take_damage/recover меняют здоровье
+# -----------------------------------------------------------------------------
 class Country:
     def __init__(self, data: dict):
         self.name = data['name']
@@ -111,7 +121,13 @@ class Attack:
         self.tooltip = data.get('tooltip', '')
         self.multipliers = data.get('multipliers', {})
 
+# -----------------------------------------------------------------------------
+# GlobalEconomyGame — центральный класс игры
+# Хранит состояние всех стран, обрабатывает атаки, тики дней и квиз
+# Сохраняется в SQLite через методы to_dict() / from_dict()
+# -----------------------------------------------------------------------------
 class GlobalEconomyGame:
+    # Насколько присутствие в альянсе повышает риск раскрытия при атаке
     ALLIANCE_RISK = {
         'НАТО': 1.3,
         'G7': 1.1,
@@ -524,6 +540,11 @@ class GlobalEconomyGame:
         """Распространяет урон через все типы связей (без отслеживания)"""
         self._spread_damage_with_tracking(source_name, initial_damage)
 
+    # -------------------------------------------------------------------------
+    # apply_attack — главная игровая функция
+    # Принимает имя атаки и цели, рассчитывает урон с учётом всех множителей,
+    # списывает IP, обновляет раскрытие и распространяет кризис по графу связей
+    # -------------------------------------------------------------------------
     def apply_attack(self, attack_name: str, target_name: str) -> Tuple[bool, str, dict]:
         if self.game_over:
             return False, "Игра окончена", {}
@@ -634,6 +655,11 @@ class GlobalEconomyGame:
             return " ".join(lessons)
         return None
 
+    # -------------------------------------------------------------------------
+    # daily_update — тик игрового дня (вызывается каждые 10 секунд реального времени)
+    # Списывает IP за обслуживание, снижает раскрытие, восстанавливает/разрушает страны
+    # и с вероятностью 20% запускает случайное экономическое событие
+    # -------------------------------------------------------------------------
     def daily_update(self):
         if self.game_over:
             return
@@ -641,8 +667,8 @@ class GlobalEconomyGame:
         self.ip = max(0, self.ip - self.global_params['daily_maintenance_cost'])
         # Давление спадает само по себе — просто ждать тоже стратегия
         self.reveal = max(0, self.reveal - self.global_params.get('reveal_decay', 2))
-        # Сбрасываем лимит квиза на новый день
-        if self.day > self.quiz_reset_day:
+        # Лимит квиза: 3 вопроса раз в 4 игровых дня
+        if self.day >= self.quiz_reset_day + 4:
             self.quiz_today_count = 0
             self.quiz_reset_day = self.day
 
@@ -821,7 +847,8 @@ class GlobalEconomyGame:
     def get_quiz_question(self) -> dict:
         """Generate a question. Returns error if daily limit reached."""
         if self.quiz_today_count >= self.QUIZ_DAILY_LIMIT:
-            return {'error': f'Лимит разведки на сегодня исчерпан. Завтра (день {self.day + 1}) доступно снова.'}
+            days_left = (self.quiz_reset_day + 4) - self.day
+            return {'error': f'Лимит разведки исчерпан. Через {days_left} дн. откроется снова.'}
         pool = self._build_quiz_pool()
         # Фильтруем уже заданные вопросы, чтобы не повторялись
         unasked = [q for q in pool if q['question'] not in self.asked_quiz_ids]

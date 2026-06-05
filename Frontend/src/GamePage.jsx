@@ -60,15 +60,19 @@ function computeAttackConditions(attack, country) {
   return { canUse: true, reason: "" };
 }
 
+// Возвращает список экономических уязвимостей страны без прямых ссылок на атаки
 function getVulnerabilities(country) {
   const v = [];
-  if (country.debt > country.gdp * 0.8) v.push("Высокий долг → Валютная атака / Долговая спираль");
-  if (country.foreign_reserves < 200) v.push("Малые резервы → Валютная атака");
-  const dep = Object.values(country.trade_partners || {}).reduce((a, b) => a + b, 0) * 100;
-  if (dep > 50) v.push(`Торговая зависимость ${Math.round(dep)}% → Санкции`);
-  if (country.energy_import > 0.4) v.push(`Энергоимпорт ${Math.round(country.energy_import * 100)}% → Шантаж`);
-  if (country.inflation > 8 || country.unemployment > 10) v.push("Соц. напряжение → Социальный взрыв");
-  if (country.digitalization > 75) v.push(`Цифровизация ${country.digitalization}% → Кибератака`);
+  const debtRatio = Math.round(country.debt / country.gdp * 100);
+  if (debtRatio > 80) v.push(`Высокая долговая нагрузка (${debtRatio}% ВВП)`);
+  if (country.foreign_reserves < 200) v.push(`Недостаточные резервы ($${Math.round(country.foreign_reserves)} млрд)`);
+  const dep = Math.round(Object.values(country.trade_partners || {}).reduce((a, b) => a + b, 0) * 100);
+  if (dep > 50) v.push(`Высокая торговая концентрация (${dep}%)`);
+  if (country.energy_import > 0.4) v.push(`Критическая энергозависимость (${Math.round(country.energy_import * 100)}% импорт)`);
+  if (country.inflation > 8) v.push(`Высокая инфляция (${country.inflation}%)`);
+  if (country.unemployment > 10) v.push(`Высокая безработица (${country.unemployment}%)`);
+  if (country.digitalization > 75) v.push(`Развитая цифровая инфраструктура (${country.digitalization}%)`);
+  if (country.corruption_perception_index < 35) v.push(`Высокий уровень коррупции (ИКВ ${country.corruption_perception_index})`);
   if (v.length === 0) v.push("Нет явных уязвимостей");
   return v;
 }
@@ -190,10 +194,11 @@ function GamePage({ nickname }) {
   const [healthHistory, setHealthHistory] = useState([]);
   const [showGlossary, setShowGlossary] = useState(false);
   const [glossaryTerm, setGlossaryTerm] = useState("");
-  // Quiz state
+  // Quiz state — quizMinimized позволяет скрыть модалку без потери вопроса
   const [quizData, setQuizData] = useState(null);
   const [quizSelected, setQuizSelected] = useState(null);
   const [quizResult, setQuizResult] = useState(null);
+  const [quizMinimized, setQuizMinimized] = useState(false);
   const [showCases, setShowCases] = useState(null); // attack name
   const intervalRef = useRef(null);
 
@@ -259,7 +264,12 @@ function GamePage({ nickname }) {
   };
 
   const openQuiz = async () => {
-    setQuizSelected(null); setQuizResult(null);
+    // Если вопрос уже открыт (свёрнут) — просто разворачиваем, не тратим попытку
+    if (quizData && !quizResult) {
+      setQuizMinimized(false);
+      return;
+    }
+    setQuizSelected(null); setQuizResult(null); setQuizMinimized(false);
     try {
       const res = await fetch(`${API}/game/quiz?nickname=${nickname}`);
       const data = await res.json();
@@ -527,11 +537,24 @@ function GamePage({ nickname }) {
         </div>
       )}
 
-      {/* Quiz modal */}
-      {quizData && (
-        <div className="quiz-overlay" onClick={() => { if (quizResult) { setQuizData(null); setQuizResult(null); } }}>
+      {/* Плавающий бейдж — показывается когда квиз свёрнут */}
+      {quizData && !quizResult && quizMinimized && (
+        <button className="quiz-minimized-badge" onClick={() => setQuizMinimized(false)}>
+          Вернуться к вопросу ↗
+        </button>
+      )}
+
+      {/* Quiz modal — не закрывается кликом снаружи, пока нет ответа */}
+      {quizData && !quizMinimized && (
+        <div className="quiz-overlay" onClick={() => { if (quizResult) { setQuizData(null); setQuizResult(null); setQuizSelected(null); } }}>
           <div className="quiz-modal" onClick={e => e.stopPropagation()}>
-            <button className="quiz-close" onClick={() => { setQuizData(null); setQuizResult(null); setQuizSelected(null); }}>✕</button>
+            {/* X закрывает полностью только после ответа; до ответа — сворачивает */}
+            <button className="quiz-close" onClick={() => {
+              if (quizResult) { setQuizData(null); setQuizResult(null); setQuizSelected(null); }
+              else { setQuizMinimized(true); }
+            }}>
+              {quizResult ? '✕' : '↙ свернуть'}
+            </button>
             <div className="quiz-reward-badge">+{quizData.reward} IP за правильный ответ</div>
             <h3 className="quiz-question">{quizData.question}</h3>
             {quizData.hint && <div className="quiz-hint">{quizData.hint}</div>}
