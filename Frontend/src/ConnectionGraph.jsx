@@ -155,9 +155,15 @@ export function ConnectionGraph({ countries, selectedCountry, onSelectCountry })
         <div className="graph-svg-wrap">
           <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '100%', background: '#060a14', borderRadius: 16, display: 'block' }}>
             <defs>
+              {/* Стрелки фиксированного размера в пикселях (markerUnits="userSpaceOnUse") */}
               {(['debt', 'energy']).map(t => (
-                <marker key={t} id={`arr-${t}`} markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
-                  <path d="M0,0 L0,7 L7,3.5 z" fill={CONN_COLORS[t]} />
+                <marker key={t} id={`arr-${t}`}
+                  markerWidth="14" markerHeight="14"
+                  refX="13" refY="7"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse">
+                  {/* Острый треугольник: кончик в (13,7), основание слева */}
+                  <path d="M0,1 L13,7 L0,13 L3,7 Z" fill={CONN_COLORS[t]} opacity="0.95" />
                 </marker>
               ))}
             </defs>
@@ -167,17 +173,22 @@ export function ConnectionGraph({ countries, selectedCountry, onSelectCountry })
               if (!s || !tgt) return null;
               const dx = tgt.x - s.x, dy = tgt.y - s.y;
               const len = Math.sqrt(dx * dx + dy * dy) || 1;
-              const nr = 22, ar = e.directed ? 9 : 0;
-              const x1 = s.x + (dx / len) * nr, y1 = s.y + (dy / len) * nr;
-              const x2 = tgt.x - (dx / len) * (nr + ar), y2 = tgt.y - (dy / len) * (nr + ar);
+              const nodeR = 22;
+              // Линия заканчивается на 16px раньше центра узла — там встаёт кончик стрелки
+              const ar = e.directed ? 16 : 0;
+              const x1 = s.x + (dx / len) * nodeR;
+              const y1 = s.y + (dy / len) * nodeR;
+              const x2 = tgt.x - (dx / len) * (nodeR + ar);
+              const y2 = tgt.y - (dy / len) * (nodeR + ar);
               const isActive = !activeNode || e.source === activeNode || e.target === activeNode;
+              const sw = Math.max(1.5, e.strength * 6);
               return (
                 <line key={i}
                   x1={x1} y1={y1} x2={x2} y2={y2}
                   stroke={CONN_COLORS[e.type]}
-                  strokeWidth={Math.max(1.2, e.strength * 7)}
-                  strokeOpacity={isActive ? 0.72 : 0.04}
-                  strokeDasharray={e.type === 'debt' ? '6,3' : undefined}
+                  strokeWidth={sw}
+                  strokeOpacity={isActive ? 0.78 : 0.05}
+                  strokeDasharray={e.type === 'debt' ? '7,4' : undefined}
                   markerEnd={e.directed ? `url(#arr-${e.type})` : undefined}
                 />
               );
