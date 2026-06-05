@@ -17,17 +17,24 @@ function buildAllEdges(countries) {
   const edges = [];
   const names = new Set(countries.map(c => c.name));
 
+  // Для торговли — дедупликация: одно ребро на пару, чтобы не рисовать дважды
+  const tradeSet = new Set();
   countries.forEach(c => {
     Object.entries(c.trade_partners || {}).forEach(([partner, share]) => {
-      if (names.has(partner))
-        edges.push({ source: c.name, target: partner, type: 'trade', strength: share, directed: false });
+      if (!names.has(partner)) return;
+      const key = [c.name, partner].sort().join('|');
+      if (tradeSet.has(key)) return;
+      tradeSet.add(key);
+      edges.push({ source: c.name, target: partner, type: 'trade', strength: share, directed: false });
     });
-    // Debt: creditor → debtor (arrow points TO debtor)
+
+    // Долг: кредитор → должник
     Object.entries(c.external_debt_holders || {}).forEach(([creditor, amount]) => {
       if (names.has(creditor))
         edges.push({ source: creditor, target: c.name, type: 'debt', strength: Math.min(amount / 1200, 1), directed: true });
     });
-    // Energy: supplier → importer (arrow points TO importer)
+
+    // Энергия: поставщик → импортёр
     Object.entries(c.energy_dependencies || {}).forEach(([supplier, share]) => {
       if (names.has(supplier))
         edges.push({ source: supplier, target: c.name, type: 'energy', strength: share, directed: true });
@@ -171,23 +178,35 @@ export function ConnectionGraph({ countries, selectedCountry, onSelectCountry })
             {visibleEdges.map((e, i) => {
               const s = positions[e.source], tgt = positions[e.target];
               if (!s || !tgt) return null;
+
               const dx = tgt.x - s.x, dy = tgt.y - s.y;
               const len = Math.sqrt(dx * dx + dy * dy) || 1;
+
+              // Не рисуем ребро если страны слишком близко — стрелка будет перевёрнута
+              if (len < 55) return null;
+
+              // Когда выбрана страна — полностью скрываем несвязанные рёбра
+              const isConnected = !activeNode || e.source === activeNode || e.target === activeNode;
+              if (!isConnected) return null;
+
               const nodeR = 22;
-              // Линия заканчивается на 16px раньше центра узла — там встаёт кончик стрелки
-              const ar = e.directed ? 16 : 0;
+              const ar = e.directed ? 15 : 0;
               const x1 = s.x + (dx / len) * nodeR;
               const y1 = s.y + (dy / len) * nodeR;
               const x2 = tgt.x - (dx / len) * (nodeR + ar);
               const y2 = tgt.y - (dy / len) * (nodeR + ar);
-              const isActive = !activeNode || e.source === activeNode || e.target === activeNode;
-              const sw = Math.max(1.5, e.strength * 6);
+
+              // Дополнительная проверка: линия не должна идти в обратную сторону
+              const rdx = x2 - x1, rdy = y2 - y1;
+              if (rdx * dx + rdy * dy < 0) return null;
+
+              const sw = Math.max(1.5, e.strength * 5);
               return (
                 <line key={i}
                   x1={x1} y1={y1} x2={x2} y2={y2}
                   stroke={CONN_COLORS[e.type]}
                   strokeWidth={sw}
-                  strokeOpacity={isActive ? 0.78 : 0.05}
+                  strokeOpacity={0.85}
                   strokeDasharray={e.type === 'debt' ? '7,4' : undefined}
                   markerEnd={e.directed ? `url(#arr-${e.type})` : undefined}
                 />
