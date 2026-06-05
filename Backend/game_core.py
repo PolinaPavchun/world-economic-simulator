@@ -40,6 +40,9 @@ class Country:
         self.energy_import = data.get('energy_import', 0)
         self.energy_export = data.get('energy_export', 0)
         self.initial_health = data['economic_health']
+        # Начальные значения — нижняя граница при восстановлении
+        self.initial_inflation = data['inflation']
+        self.initial_unemployment = data['unemployment']
         
         # НОВЫЕ ПОКАЗАТЕЛИ
         self.foreign_reserves = data.get('foreign_reserves_usd_billion', 100)
@@ -72,8 +75,9 @@ class Country:
 
     def recover(self, amount: int):
         self.economic_health = min(self.initial_health, self.economic_health + amount)
-        self.unemployment = max(0, self.unemployment - amount / 30)
-        self.inflation = max(0, self.inflation - amount / 40)
+        # Не опускаем ниже начальных значений — нельзя «вылечить» страну до нуля
+        self.unemployment = max(self.initial_unemployment, self.unemployment - amount / 30)
+        self.inflation = max(self.initial_inflation, self.inflation - amount / 40)
         
         # Восстановление влияет на резервы (чем выше ИЧР, тем быстрее восстанавливаются)
         if self.human_development_index > 0.8:
@@ -825,6 +829,8 @@ class GlobalEconomyGame:
                 'energy_import': c.energy_import,
                 'energy_export': c.energy_export,
                 'initial_health': c.initial_health,
+                'initial_inflation': c.initial_inflation,
+                'initial_unemployment': c.initial_unemployment,
                 # НОВЫЕ ПОКАЗАТЕЛИ
                 'foreign_reserves': c.foreign_reserves,
                 'human_development_index': c.human_development_index,
@@ -1196,6 +1202,9 @@ class GlobalEconomyGame:
                 'trade_blocs': cdata.get('trade_blocs', []),
             })
             c.initial_health = cdata['initial_health']
+            # Восстанавливаем начальные значения; если сохранение старое — берём текущие
+            c.initial_inflation = cdata.get('initial_inflation', cdata['inflation'])
+            c.initial_unemployment = cdata.get('initial_unemployment', cdata['unemployment'])
             c.sanctions_experience = cdata.get('sanctions_experience', False)
             instance.countries[name] = c
 
