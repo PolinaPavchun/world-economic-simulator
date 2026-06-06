@@ -15,7 +15,6 @@ import {
 import { ConnectionGraph, ALLIANCE_COLORS } from "./ConnectionGraph"; // граф связей между странами
 import { API } from "./api"; // базовый URL бэкенда
 
-// ─── helpers (вспомогательные функции, не компоненты) ─────────────────────────
 
 // Вычисляет условия применимости атаки к конкретной стране.
 // Возвращает { canUse: bool, reason: string } — используется для цветовой подсветки в Арсенале
@@ -185,7 +184,6 @@ const ScatterTip = ({ active, payload }) => {
   );
 };
 
-// ─── main component ────────────────────────────────────────────────────────────
 
 // { nickname } — деструктуризация props: вместо props.nickname пишем просто nickname
 function GamePage({ nickname }) {

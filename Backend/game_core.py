@@ -1,8 +1,6 @@
-# =============================================================================
 # game_core.py — игровой движок World Economic Simulator
 # Содержит: классы Country, Attack, EconomicConnection и основной класс GlobalEconomyGame
 # Все игровые расчёты (атаки, распространение кризиса, квиз) находятся здесь
-# =============================================================================
 
 import json    # для чтения balance.json и сериализации состояния игры
 import random  # для случайных событий (random.choice, random.random, random.randint)
@@ -293,7 +291,6 @@ class GlobalEconomyGame:
         explanation = ""
         lesson = ""
 
-        # ── 1. ВАЛЮТНАЯ АТАКА ──────────────────────────────────────────────
         if attack.attack_type == 'currency_crisis':
             debt_ratio = country.debt / country.gdp * 100 if country.gdp > 0 else 0
             reserves = country.foreign_reserves
@@ -319,7 +316,6 @@ class GlobalEconomyGame:
                     debt=round(debt_ratio, 1), reserves=round(reserves, 1))
                 lesson = LESSONS['currency_crisis']['failure']['lesson']
 
-        # ── 2. ДОЛГОВАЯ СПИРАЛЬ ────────────────────────────────────────────
         elif attack.attack_type == 'debt_spiral':
             debt_ratio = country.debt / country.gdp * 100 if country.gdp > 0 else 0
             critical_t = attack.multipliers.get('conditions', {}).get('critical_threshold', 100)
@@ -338,7 +334,6 @@ class GlobalEconomyGame:
                 explanation = LESSONS['debt_spiral']['failure']['text'].format(debt=round(debt_ratio, 1))
                 lesson = LESSONS['debt_spiral']['failure']['lesson']
 
-        # ── 3. ТОРГОВЫЕ САНКЦИИ ────────────────────────────────────────────
         elif attack.attack_type == 'trade_blockade':
             trade_dependency = sum(country.trade_partners.values()) * 100
             num_partners = len(country.trade_partners)
@@ -364,7 +359,6 @@ class GlobalEconomyGame:
                 explanation = LESSONS['trade_blockade']['failure']['text'].format(dependency=round(trade_dependency, 1))
                 lesson = LESSONS['trade_blockade']['failure']['lesson']
 
-        # ── 4. ЭНЕРГЕТИЧЕСКИЙ ШАНТАЖ ───────────────────────────────────────
         elif attack.attack_type == 'energy_embargo':
             energy_import_pct = country.energy_import * 100
             energy_export_pct = country.energy_export * 100
@@ -385,7 +379,6 @@ class GlobalEconomyGame:
                     import_value=round(energy_import_pct, 1))
                 lesson = LESSONS['energy_embargo']['failure']['lesson']
 
-        # ── 5. СОЦИАЛЬНЫЙ ВЗРЫВ ────────────────────────────────────────────
         elif attack.attack_type == 'social_unrest':
             inflation = country.inflation
             unemployment = country.unemployment
@@ -421,7 +414,6 @@ class GlobalEconomyGame:
                     inflation=round(inflation, 1), unemployment=round(unemployment, 1))
                 lesson = LESSONS['social_unrest']['failure']['lesson']
 
-        # ── 6. КИБЕРАТАКА ──────────────────────────────────────────────────
         elif attack.attack_type == 'cyber_attack':
             digital = country.digitalization
             high_t = attack.multipliers.get('conditions', {}).get('high_threshold', 75)
@@ -445,20 +437,17 @@ class GlobalEconomyGame:
             explanation = "Атака применена."
             lesson = ""
 
-        # ── Коррупция усиливает урон (кроме кибератак — там отдельная логика) ──
         if attack.attack_type not in ['cyber_attack', 'social_unrest']:
             corruption_mult = country.get_corruption_multiplier()
             if corruption_mult > 1.0:
                 mult *= corruption_mult
                 explanation += f" Коррупция (ИКВ {country.corruption_perception_index}) усилила урон."
 
-        # ── Резервы защищают при финансовых атаках ──────────────────────────
         if attack.attack_type in ['currency_crisis', 'debt_spiral']:
             reserve_protection = country.get_reserve_protection()
             if reserve_protection < 1.0:
                 mult *= reserve_protection
 
-        # ── Защита альянсов ─────────────────────────────────────────────────
         alliance_mult, alliance_note = self._get_alliance_defense(country, attack.attack_type)
         if alliance_mult < 1.0:
             mult *= alliance_mult
@@ -591,7 +580,6 @@ class GlobalEconomyGame:
             multiplier = 0.3
             explanation = "Операция провалена — цель устояла."
 
-        # ── Стоимость с учётом давления ────────────────────────────────────────
         reveal_cost_mult = 1.0
         if self.reveal >= 70:
             reveal_cost_mult = 1.30
@@ -616,7 +604,6 @@ class GlobalEconomyGame:
             'affected_countries': []            # список стран, куда докатится волна кризиса
         }
 
-        # ── Reveal: растёт от плохих/шумных операций ───────────────────────────
         # Эффективная атака (mult ≥ 1.5): +3  — чистый удар, мало следов
         # Нормальная атака  (mult 1–1.5):  +6
         # Неэффективная     (mult < 1):    +11 — много шума, мало результата
@@ -886,7 +873,6 @@ class GlobalEconomyGame:
             'attacks': [a.__dict__ for a in self.attacks]
         }
 
-    # ─── Quiz system ───────────────────────────────────────────────────────
 
     QUIZ_DAILY_LIMIT = 3
 
@@ -1193,7 +1179,6 @@ class GlobalEconomyGame:
                 'hint': 'Человек без работы и денег злее, чем человек с работой.',
                 'explanation': 'Безработные потеряли источник дохода и смысл занятости. Они более восприимчивы к протестным движениям и популистским лозунгам. В Испании и Греции в 2012-2015 годах безработица выше 25% привела к масштабным беспорядкам.',
             },
-            # ── Блок 2: дополнительные вопросы (22 новых) ─────────────────────
             {
                 'question': 'Что такое ВВП на душу населения и почему он важнее общего ВВП?',
                 'options': ['Это сумма всех зарплат в стране', 'Общий ВВП делённый на количество жителей — показывает реальный уровень жизни', 'Это ВВП без учёта экспорта', 'Это ВВП за вычетом государственного долга'],
