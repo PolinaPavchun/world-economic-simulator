@@ -617,6 +617,13 @@
     color: #f39c12;
 }
 
+/* Случайные события — отдельный стиль, чтобы выделялись */
+.toast.event {
+    border-left-color: #aa44ff;
+    color: #cc88ff;
+    font-size: 13px;
+}
+
 @keyframes fadeOut {
     0% {
         opacity: 0;

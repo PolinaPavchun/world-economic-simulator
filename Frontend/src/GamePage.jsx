@@ -322,11 +322,12 @@ function GamePage({ nickname }) {
         });
         const s = await res.json();
         setGameState(s); setMapVersion(v => v + 1);
-        addLog(`День ${s.day} — глобальное здоровье ${s.global_health}%`);
         setHealthHistory(prev => [...prev.slice(-30), {
           day: s.day, global: s.global_health,
           ...Object.fromEntries(s.countries.map(c => [c.name, c.economic_health]))
         }]);
+        // Случайные события — показываем как уведомление
+        if (s.last_event) showToast(s.last_event, "event");
         if (s.game_over) {
           const worst = s.countries.reduce((a, b) => a.economic_health < b.economic_health ? a : b);
           setShowDebrief({ winner: s.win, worst: worst.name, worstHealth: worst.economic_health });
