@@ -11,3 +11,4 @@ Frontend/.env.local
 Frontend/src/GamePage_old.jsx
 
 .DS_Store
+**/.DS_Store
