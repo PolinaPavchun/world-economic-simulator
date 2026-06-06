@@ -4,20 +4,22 @@
 # Все игровые расчёты (атаки, распространение кризиса, квиз) находятся здесь
 # =============================================================================
 
-import json
-import random
-from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass
-from lessons import LESSONS
+import json    # для чтения balance.json и сериализации состояния игры
+import random  # для случайных событий (random.choice, random.random, random.randint)
+from typing import Dict, List, Tuple, Optional  # подсказки типов — код читается как документация
+from dataclasses import dataclass  # декоратор, который автоматически генерирует __init__, __repr__ для класса-данных
+from lessons import LESSONS  # словарь образовательных текстов из lessons.py
 
+# @dataclass автоматически создаёт метод __init__ с аргументами для всех полей ниже —
+# не нужно писать def __init__(self, from_country, to_country, ...) вручную
 @dataclass
 class EconomicConnection:
     """Представляет экономическую связь между двумя странами"""
-    from_country: str
-    to_country: str
-    connection_type: str  # 'trade', 'debt', 'energy'
-    strength: float  # 0-1, сила связи
-    data: dict  # дополнительные параметры
+    from_country: str    # страна-источник связи (например, Германия)
+    to_country: str      # страна-получатель (например, Россия)
+    connection_type: str # тип: 'trade' (торговля), 'debt' (долг), 'energy' (энергия)
+    strength: float      # сила связи от 0 до 1: чем выше, тем больше урон передаётся
+    data: dict           # дополнительные параметры (например, сумма долга в млрд)
 
 # -----------------------------------------------------------------------------
 # Country — модель одной страны с её экономическими показателями
@@ -62,28 +64,37 @@ class Country:
         self.capital_controls = False  # Введены ли ограничения на движение капитала
 
     def take_damage(self, damage: int, multiplier: float = 1.0):
+        # int(...) — округляем до целого, чтобы здоровье хранилось в целых числах
         effective = int(damage * multiplier)
+        # max(0, ...) — здоровье не может уйти ниже нуля
         self.economic_health = max(0, self.economic_health - effective)
         if effective > 0:
+            # Чем сильнее удар, тем быстрее растёт безработица; / 20 — коэффициент чувствительности
+            # min(40, ...) — безработица не может быть выше 40% — игровой баланс
             self.unemployment = min(40, self.unemployment + effective / 20)
+            # Инфляция растёт чуть медленнее безработицы (/ 25)
             self.inflation = min(50, self.inflation + effective / 25)
-            
+
             # Урон влияет на резервы (чем больше урон, тем больше тратим резервов)
             if self.foreign_reserves > 0:
                 reserve_loss = effective * 0.5  # 50% урона идёт из резервов
                 self.foreign_reserves = max(0, self.foreign_reserves - reserve_loss)
 
     def recover(self, amount: int):
+        # min(initial_health, ...) — страна не восстанавливается ВЫШЕ начального значения
         self.economic_health = min(self.initial_health, self.economic_health + amount)
         # Не опускаем ниже начальных значений — нельзя «вылечить» страну до нуля
+        # max(initial_unemployment, ...) — безработица не падает ниже исторического минимума
         self.unemployment = max(self.initial_unemployment, self.unemployment - amount / 30)
         self.inflation = max(self.initial_inflation, self.inflation - amount / 40)
-        
+
         # Восстановление влияет на резервы (чем выше ИЧР, тем быстрее восстанавливаются)
         if self.human_development_index > 0.8:
+            # min(..., 5000) — ограничиваем максимум резервов 5 трлн $ (реалистичный потолок)
             self.foreign_reserves = min(self.foreign_reserves + amount * 0.3, 5000)
 
     def is_collapsed(self) -> bool:
+        # Порог коллапса — 20%: ниже этой черты страна начинает деградировать сама по себе (в daily_update)
         return self.economic_health <= 20
     
     def get_reserve_protection(self) -> float:
@@ -181,33 +192,41 @@ class GlobalEconomyGame:
     }
 
     def __init__(self, json_file: str):
+        # Открываем balance.json — там все страны, атаки и глобальные параметры
+        # encoding='utf-8' — файл содержит кириллицу, без этого Python может ошибиться
         with open(json_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+            data = json.load(f)  # json.load читает файл и превращает JSON в словарь Python
+
+        # Создаём словарь стран: ключ — название страны, значение — объект Country
+        # Dict[str, Country] — подсказка типа: ключи строки, значения — объекты Country
         self.countries: Dict[str, Country] = {}
         for cdata in data['countries']:
             c = Country(cdata)
-            self.countries[c.name] = c
+            self.countries[c.name] = c  # добавляем в словарь; доступ: self.countries["Германия"]
+
+        # List comprehension: создаём список объектов Attack из списка словарей в JSON
         self.attacks: List[Attack] = [Attack(a) for a in data['attacks']]
-        self.global_params = data['global_params']
+        self.global_params = data['global_params']  # recovery_rate, contagion_factor и др.
+        # data.get(..., {}) — безопасное чтение: если ключа нет, вернёт пустой dict (а не ошибку)
         self.economic_lessons = data.get('economic_lessons', {})
 
-        self.ip = 1000
-        self.reveal = 0          # 0–100: давление на операцию
-        self.day = 0
-        self.game_over = False
-        self.win = False
-        self.last_event = ""
-        self.last_lesson = None
+        self.ip = 1000           # стартовый баланс очков влияния (IP)
+        self.reveal = 0          # 0–100: насколько операция "засвечена"; 100 = game over
+        self.day = 0             # счётчик игровых дней
+        self.game_over = False   # флаг окончания игры
+        self.win = False         # True = победа (глобальное здоровье упало ниже порога)
+        self.last_event = ""     # текст последнего случайного события для показа на экране
+        self.last_lesson = None  # последний образовательный урок после атаки
         self.connections: List[EconomicConnection] = []
-        self._build_connection_graph()
-        self.discovered_laws: set = set()
-        self._quiz_answer: str = ""
-        self._quiz_explanation: str = ""
-        self._quiz_reward: int = 0
+        self._build_connection_graph()  # строим граф связей между странами по данным из JSON
+        self.discovered_laws: set = set()   # set — множество (без дублей); обнаруженные экономические законы
+        self._quiz_answer: str = ""         # правильный ответ на текущий вопрос квиза (хранится на сервере!)
+        self._quiz_explanation: str = ""    # объяснение правильного ответа
+        self._quiz_reward: int = 0          # награда IP за правильный ответ
         self.quiz_today_count: int = 0   # сколько раз уже отвечали сегодня
-        self.quiz_reset_day: int = 0     # день, когда был последний сброс
-        self.asked_quiz_ids: list = []   # вопросы, уже заданные в этой сессии
-        self.consecutive_failures: int = 0  # сколько атак подряд провалилось
+        self.quiz_reset_day: int = 0     # день, когда был последний сброс лимита квиза
+        self.asked_quiz_ids: list = []   # вопросы, уже заданные в этой сессии (чтобы не повторяться)
+        self.consecutive_failures: int = 0  # сколько атак подряд провалилось (влияет на бонус шанса)
 
     def _build_connection_graph(self):
         """Строит граф экономических связей между странами"""
@@ -554,14 +573,17 @@ class GlobalEconomyGame:
         if self.game_over:
             return False, "Игра окончена", {}
 
+        # next(генератор) — берёт ПЕРВЫЙ элемент из последовательности (атаку с нужным именем)
         attack = next(a for a in self.attacks if a.name == attack_name)
-        target = self.countries[target_name]
+        target = self.countries[target_name]  # словарный доступ: O(1) — мгновенно
+        # Стоимость атаки масштабируется на вес страны: атаковать США дороже, чем Мексику
         cost = int(attack.base_cost * target.weight)
         if self.ip < cost:
             return False, f"Недостаточно очков влияния (нужно {cost})", {}
 
-        # После 2 провалов подряд шанс успеха повышается до 80%
+        # После 2 провалов подряд шанс успеха повышается до 80% (защита от бесконечных неудач)
         base_chance = 80 if self.consecutive_failures >= 2 else 62
+        # random.randint(1, 100) — случайное число от 1 до 100 включительно; <= 62 означает 62% вероятность успеха
         success = random.randint(1, 100) <= base_chance
 
         multiplier, explanation, lesson = self._get_attack_multiplier_and_explanation(attack, target)
@@ -579,16 +601,19 @@ class GlobalEconomyGame:
         if self.ip < effective_cost:
             return False, f"Недостаточно очков влияния (нужно {effective_cost}, есть {self.ip})", {}
 
+        # При успехе урон масштабируется на multiplier (может быть >1 или <1 в зависимости от уязвимости цели)
+        # При провале — фиксированные 30% базового урона (атака ударила вхолостую)
         damage = int(attack.base_damage * multiplier) if success else int(attack.base_damage * 0.3)
-        target.take_damage(damage)
-        self.ip -= effective_cost
+        target.take_damage(damage)  # применяем урон к стране-цели
+        self.ip -= effective_cost   # списываем IP с баланса игрока
 
+        # Словарь с деталями атаки — он вернётся на фронтенд для показа модалки-объяснения
         attack_details = {
-            'explanation': explanation,
-            'lesson': lesson,
-            'multiplier': round(multiplier, 2),
+            'explanation': explanation,         # почему атака сработала/не сработала
+            'lesson': lesson,                   # образовательный принцип из lessons.py
+            'multiplier': round(multiplier, 2), # round(..., 2) — 2 знака после запятой
             'damage': damage,
-            'affected_countries': []
+            'affected_countries': []            # список стран, куда докатится волна кризиса
         }
 
         # ── Reveal: растёт от плохих/шумных операций ───────────────────────────
@@ -630,11 +655,14 @@ class GlobalEconomyGame:
             self.game_over = True
             msg += " | Операция раскрыта — игра окончена"
 
+        # Проверяем условие победы: среднее здоровье всех стран ниже порога (обычно 30%)
+        # sum(генератор) / len — среднее арифметическое
         avg_health = sum(c.economic_health for c in self.countries.values()) / len(self.countries)
         if avg_health <= self.global_params['world_health_threshold']:
             self.game_over = True
-            self.win = True
+            self.win = True  # игрок победил — глобальный коллапс достигнут
 
+        # Возвращаем тройку значений; вызывающий код делает: success, msg, details = game.apply_attack(...)
         return success, msg, attack_details
 
     def _check_economic_laws(self, attack: Attack, target: Country, damage: int) -> Optional[str]:
@@ -701,6 +729,7 @@ class GlobalEconomyGame:
                 # Ниже 20%: каскадный коллапс
                 country.take_damage(3)
 
+        # random.random() возвращает число от 0.0 до 1.0; < 0.2 означает 20% вероятность события за тик
         if random.random() < 0.2:
             self._trigger_random_event()
 
@@ -714,20 +743,22 @@ class GlobalEconomyGame:
             self.last_event = "Глобальный коллапс"
 
     def _trigger_random_event(self):
+        # Список кортежей (название, функция-эффект) — lambda позволяет отложить выполнение до вызова effect()
         events = [
-            ("Финансовая поддержка", lambda: setattr(self, 'ip', self.ip + 150)),
-            ("Пандемия", lambda: [c.take_damage(int(c.economic_health * 0.05)) for c in self.countries.values()]),
+            ("Финансовая поддержка", lambda: setattr(self, 'ip', self.ip + 150)),  # setattr — устанавливает атрибут объекта по имени
+            ("Пандемия", lambda: [c.take_damage(int(c.economic_health * 0.05)) for c in self.countries.values()]),  # 5% здоровья всем странам
             ("Банковский кризис", lambda: [c.take_damage(int(c.economic_health * 0.03)) for c in self.countries.values()]),
-            ("Нефтяной шок", lambda: [c.take_damage(8) for c in self.countries.values() if c.energy_import > 0.4]),
-            ("Природная катастрофа", lambda: random.choice(list(self.countries.values())).take_damage(12)),
-            ("Глобальная рецессия", lambda: [c.take_damage(5) for c in self.countries.values() if c.economic_health > 50]),
-            ("Торговое соглашение", lambda: [c.recover(5) for c in self.countries.values() if c.export_oriented]),
+            ("Нефтяной шок", lambda: [c.take_damage(8) for c in self.countries.values() if c.energy_import > 0.4]),  # только зависящие от импорта
+            ("Природная катастрофа", lambda: random.choice(list(self.countries.values())).take_damage(12)),  # одна случайная страна
+            ("Глобальная рецессия", lambda: [c.take_damage(5) for c in self.countries.values() if c.economic_health > 50]),  # бьёт по здоровым
+            ("Торговое соглашение", lambda: [c.recover(5) for c in self.countries.values() if c.export_oriented]),  # лечит экспортёров
             ("Долговой кризис", lambda: self._debt_crisis_event()),
             ("Бегство капитала", lambda: self._capital_flight_event()),
         ]
+        # random.choice выбирает случайный элемент из списка с равной вероятностью
         name, effect = random.choice(events)
-        effect()
-        self.last_event = name
+        effect()             # вызываем выбранную lambda-функцию
+        self.last_event = name  # сохраняем название для показа на экране
 
     def _debt_crisis_event(self):
         """Событие: долговой кризис в случайной стране с высоким долгом"""
@@ -752,6 +783,7 @@ class GlobalEconomyGame:
         return 'critical'
 
     def get_state(self) -> dict:
+        """Собирает полное состояние игры в словарь для отправки на фронтенд через JSON."""
         avg_health = sum(c.economic_health for c in self.countries.values()) / len(self.countries)
         return {
             'ip': self.ip,
@@ -807,6 +839,8 @@ class GlobalEconomyGame:
         }
 
     def to_dict(self):
+        """Сериализует всё состояние игры в словарь для сохранения в SQLite.
+        from_dict() — обратная операция: восстанавливает объект из этого словаря."""
         return {
             'ip': self.ip,
             'reveal': self.reveal,
@@ -857,26 +891,28 @@ class GlobalEconomyGame:
     QUIZ_DAILY_LIMIT = 3
 
     def get_quiz_question(self) -> dict:
-        """Generate a question. Returns error if daily limit reached."""
+        """Выбирает вопрос из пула. Возвращает ошибку если дневной лимит исчерпан."""
         if self.quiz_today_count >= self.QUIZ_DAILY_LIMIT:
             days_left = (self.quiz_reset_day + 4) - self.day
             return {'error': f'Лимит разведки исчерпан. Через {days_left} дн. откроется снова.'}
-        pool = self._build_quiz_pool()
-        # Фильтруем уже заданные вопросы, чтобы не повторялись
+        pool = self._build_quiz_pool()  # получаем все вопросы (статические + динамические)
+        # List comprehension с условием: берём только те вопросы, которых ещё не задавали
         unasked = [q for q in pool if q['question'] not in self.asked_quiz_ids]
         if len(unasked) < 2:
-            # Все вопросы пройдены — сбрасываем историю
+            # Все вопросы пройдены — сбрасываем историю, чтобы цикл повторился
             self.asked_quiz_ids = []
             unasked = pool
-        q = random.choice(unasked)
-        self.asked_quiz_ids.append(q['question'])
+        q = random.choice(unasked)                  # случайный вопрос из незаданных
+        self.asked_quiz_ids.append(q['question'])   # запоминаем, что уже задавали этот вопрос
+        # Сохраняем правильный ответ на сервере — клиент не знает его до проверки
         self._quiz_answer = q['answer']
         self._quiz_explanation = q['explanation']
         self._quiz_reward = q['reward']
+        # Клиенту отдаём вопрос и варианты, но НЕ правильный ответ
         return {
             'question': q['question'],
             'options': q['options'],
-            'hint': q.get('hint', ''),
+            'hint': q.get('hint', ''),  # q.get — безопасное чтение: hint может отсутствовать
             'reward': q['reward'],
             'remaining': self.QUIZ_DAILY_LIMIT - self.quiz_today_count,
         }
@@ -884,21 +920,23 @@ class GlobalEconomyGame:
     def submit_quiz_answer(self, answer: str) -> dict:
         if not self._quiz_answer:
             return {'error': 'Нет активного вопроса'}
+        # .strip() убирает пробелы по краям — защита от случайных пробелов в ответе
         correct = answer.strip() == self._quiz_answer.strip()
         explanation = self._quiz_explanation
+        # Условное выражение: если правильно — начисляем награду, иначе 0
         reward = self._quiz_reward if correct else 0
         reveal_bonus = 0
         if correct:
             self.ip += reward
             # Правильный ответ снижает давление — разведка помогает прикрыть следы
-            reveal_bonus = -10
-            self.reveal = max(0, self.reveal + reveal_bonus)
-        self.quiz_today_count += 1
-        self._quiz_answer = ""
+            reveal_bonus = -10  # отрицательное значение — раскрытие УМЕНЬШАЕТСЯ на 10 пунктов
+            self.reveal = max(0, self.reveal + reveal_bonus)  # не уходим ниже 0
+        self.quiz_today_count += 1  # увеличиваем счётчик использованных попыток (лимит 3 за период)
+        self._quiz_answer = ""  # сбрасываем ответ — нельзя отвечать на один вопрос дважды
         return {
             'correct': correct,
             'ip_gained': reward,
-            'reveal_change': reveal_bonus,
+            'reveal_change': reveal_bonus,  # -10 или 0 — фронтенд покажет это игроку
             'explanation': explanation,
             'remaining': max(0, self.QUIZ_DAILY_LIMIT - self.quiz_today_count),
         }
@@ -1329,6 +1367,10 @@ class GlobalEconomyGame:
 
     @classmethod
     def from_dict(cls, data):
+        """Восстанавливает объект GlobalEconomyGame из словаря (загруженного из SQLite).
+        @classmethod означает, что метод принадлежит классу, а не экземпляру: Game.from_dict(data)
+        cls — это сам класс GlobalEconomyGame (аналог self, но для класса)."""
+        # cls.__new__(cls) создаёт пустой объект без вызова __init__ — мы заполним его сами
         instance = cls.__new__(cls)
         instance.ip = data['ip']
         instance.reveal = data.get('reveal', 0)
