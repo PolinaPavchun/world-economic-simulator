@@ -879,12 +879,12 @@ function GamePage({ nickname }) {
               <ResponsiveContainer>
                 <ScatterChart margin={{ top: 8, right: 24, bottom: 8, left: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1a2a3a" />
-                  <XAxis dataKey="x" name="Долг/ВВП" unit="%" stroke="#88aacc" fontSize={11} />
+                  <XAxis dataKey="x" name="Долг/ВВП" unit="%" stroke="#88aacc" fontSize={11} type="number" domain={[0, 'auto']} />
                   <YAxis dataKey="y" name="Здоровье" unit="%" stroke="#88aacc" domain={[0, 100]} fontSize={11} />
                   <ZAxis dataKey="z" range={[40, 200]} />
                   <Tooltip content={<ScatterTip />} />
-                  <ReferenceLine x={90} stroke="#ff6666" strokeDasharray="5,3"
-                    label={{ value: "90% — опасно", fill: "#ff8888", fontSize: 10, position: "insideTopRight" }} />
+                  <ReferenceLine x={90} stroke="#ff4444" strokeWidth={2} strokeDasharray="6,3"
+                    label={{ value: "90% ВВП", fill: "#ff6666", fontSize: 11, position: "insideTopLeft" }} />
                   <Scatter data={scatterData}>
                     {scatterData.map((d, i) => <Cell key={i} fill={getHealthColor(d.y)} opacity={0.85} />)}
                   </Scatter>
