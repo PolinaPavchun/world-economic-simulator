@@ -577,7 +577,13 @@ class GlobalEconomyGame:
             return False, f"Недостаточно очков влияния (нужно {effective_cost})", {}
 
         # После 2 провалов подряд шанс повышается до 80%
-        base_chance = 80 if self.consecutive_failures >= 2 else 65
+        # 3 провала подряд — следующая атака гарантированно успешна
+        if self.consecutive_failures >= 3:
+            base_chance = 100
+        elif self.consecutive_failures >= 2:
+            base_chance = 80
+        else:
+            base_chance = 65
         success = random.randint(1, 100) <= base_chance
 
         multiplier, explanation, lesson = self._get_attack_multiplier_and_explanation(attack, target)
