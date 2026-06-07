@@ -213,7 +213,6 @@ class GlobalEconomyGame:
         self.day = 0             # счётчик игровых дней
         self.game_over = False   # флаг окончания игры
         self.win = False         # True = победа (глобальное здоровье упало ниже порога)
-        self.last_event = ""     # текст последнего случайного события для показа на экране
         self.last_lesson = None  # последний образовательный урок после атаки
         self.connections: List[EconomicConnection] = []
         self._build_connection_graph()  # строим граф связей между странами по данным из JSON
@@ -687,7 +686,6 @@ class GlobalEconomyGame:
     def daily_update(self):
         if self.game_over:
             return
-        self.last_event = ""  # сбрасываем, чтобы старое событие не всплывало повторно
         self.day += 1
         self.ip = max(0, self.ip - self.global_params['daily_maintenance_cost'])
         # Давление спадает само по себе — просто ждать тоже стратегия
@@ -717,52 +715,12 @@ class GlobalEconomyGame:
                 # Ниже 20%: каскадный коллапс
                 country.take_damage(3)
 
-        # random.random() возвращает число от 0.0 до 1.0; < 0.2 означает 20% вероятность события за тик
-        if random.random() < 0.2:
-            self._trigger_random_event()
-
         if self.reveal >= 100:
             self.game_over = True
-            self.last_event = "Операция раскрыта"
         avg_health = sum(c.economic_health for c in self.countries.values()) / len(self.countries)
         if avg_health <= self.global_params['world_health_threshold']:
             self.game_over = True
             self.win = True
-            self.last_event = "Глобальный коллапс"
-
-    def _trigger_random_event(self):
-        # Список кортежей (название, функция-эффект) — lambda позволяет отложить выполнение до вызова effect()
-        events = [
-            ("Финансовая поддержка", lambda: setattr(self, 'ip', self.ip + 150)),  # setattr — устанавливает атрибут объекта по имени
-            ("Пандемия", lambda: [c.take_damage(int(c.economic_health * 0.05)) for c in self.countries.values()]),  # 5% здоровья всем странам
-            ("Банковский кризис", lambda: [c.take_damage(int(c.economic_health * 0.03)) for c in self.countries.values()]),
-            ("Нефтяной шок", lambda: [c.take_damage(8) for c in self.countries.values() if c.energy_import > 0.4]),  # только зависящие от импорта
-            ("Природная катастрофа", lambda: random.choice(list(self.countries.values())).take_damage(12)),  # одна случайная страна
-            ("Глобальная рецессия", lambda: [c.take_damage(5) for c in self.countries.values() if c.economic_health > 50]),  # бьёт по здоровым
-            ("Торговое соглашение", lambda: [c.recover(5) for c in self.countries.values() if c.export_oriented]),  # лечит экспортёров
-            ("Долговой кризис", lambda: self._debt_crisis_event()),
-            ("Бегство капитала", lambda: self._capital_flight_event()),
-        ]
-        # random.choice выбирает случайный элемент из списка с равной вероятностью
-        name, effect = random.choice(events)
-        effect()             # вызываем выбранную lambda-функцию
-        self.last_event = name  # сохраняем название для показа на экране
-
-    def _debt_crisis_event(self):
-        """Событие: долговой кризис в случайной стране с высоким долгом"""
-        high_debt_countries = [c for c in self.countries.values() if c.debt > c.gdp * 0.9]
-        if high_debt_countries:
-            victim = random.choice(high_debt_countries)
-            victim.take_damage(15)
-            self.last_event = f"💸 Долговой кризис в {victim.name}!"
-
-    def _capital_flight_event(self):
-        """Событие: бегство капитала из страны с низкими резервами"""
-        low_reserve_countries = [c for c in self.countries.values() if c.foreign_reserves < 200]
-        if low_reserve_countries:
-            victim = random.choice(low_reserve_countries)
-            victim.take_damage(10)
-            self.last_event = f"📉 Бегство капитала из {victim.name}!"
 
     def _reveal_level(self) -> str:
         if self.reveal < 40: return 'low'
@@ -781,7 +739,6 @@ class GlobalEconomyGame:
             'day': self.day,
             'game_over': self.game_over,
             'win': self.win,
-            'last_event': self.last_event,
             'last_lesson': self.last_lesson,
             'global_health': int(avg_health),
             'countries': [
@@ -839,7 +796,6 @@ class GlobalEconomyGame:
             'day': self.day,
             'game_over': self.game_over,
             'win': self.win,
-            'last_event': self.last_event,
             'global_params': self.global_params,
             'countries': {c.name: {
                 'name': c.name,
@@ -1367,7 +1323,6 @@ class GlobalEconomyGame:
         instance.day = data['day']
         instance.game_over = data['game_over']
         instance.win = data['win']
-        instance.last_event = data.get('last_event', '')
         instance.global_params = data['global_params']
         instance.economic_lessons = data.get('economic_lessons', {})
         instance.last_lesson = data.get('last_lesson', None)

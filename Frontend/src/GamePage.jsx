@@ -244,7 +244,6 @@ function GamePage({ nickname }) {
         global: data.global_health,
         ...Object.fromEntries(data.countries.map(c => [c.name, c.economic_health]))
       }]);
-      if (data.last_event) addLog(data.last_event);
     } catch { /* silent — не показываем ошибку, просто ждём следующего тика */ }
   };
 
@@ -351,8 +350,6 @@ function GamePage({ nickname }) {
           day: s.day, global: s.global_health,
           ...Object.fromEntries(s.countries.map(c => [c.name, c.economic_health]))
         }]);
-        // Случайные события — показываем как уведомление
-        if (s.last_event) showToast(s.last_event, "event");
         if (s.game_over) {
           // Array.reduce с коллбэком сравнения: находит страну с наименьшим healthом
           const worst = s.countries.reduce((a, b) => a.economic_health < b.economic_health ? a : b);
