@@ -274,13 +274,13 @@ class GlobalEconomyGame:
             if reduction < best_mult:
                 best_mult = reduction
                 mechanism = {
-                    'currency_crisis': f"{name}: МВФ готов предоставить экстренные кредиты",
-                    'debt_spiral': f"{name}: союзники организуют пакет финансовой помощи",
-                    'energy_embargo': f"{name}: действует режим энергетической солидарности",
-                    'trade_blockade': f"{name}: альтернативные рынки снижают зависимость",
-                    'social_unrest': f"{name}: демократические институты сдерживают протесты",
-                    'cyber_attack': f"{name}: совместная разведка кибер-угроз",
-                }.get(attack_type, f"{name}: союзники оказывают поддержку")
+                    'currency_crisis': f"{name} смягчил удар — экстренные кредиты МВФ стабилизируют валюту",
+                    'debt_spiral': f"{name} смягчил удар — союзники поддержали пакетом финансовой помощи",
+                    'energy_embargo': f"{name} смягчил удар — страны блока делятся энергоресурсами",
+                    'trade_blockade': f"{name} смягчил удар — альтернативные рынки снижают потери",
+                    'social_unrest': f"{name} смягчил удар — институты удержали протесты",
+                    'cyber_attack': f"{name} смягчил удар — совместная разведка предупредила атаку",
+                }.get(attack_type, f"{name} смягчил удар — союзники оказали поддержку")
                 notes.append(mechanism)
         return best_mult, "; ".join(notes)
 
@@ -450,7 +450,7 @@ class GlobalEconomyGame:
         alliance_mult, alliance_note = self._get_alliance_defense(country, attack.attack_type)
         if alliance_mult < 1.0:
             mult *= alliance_mult
-            explanation += f" | 🛡️ {alliance_note} (×{alliance_mult:.2f})."
+            explanation += f" {alliance_note}."
 
         return mult, explanation, lesson
 
