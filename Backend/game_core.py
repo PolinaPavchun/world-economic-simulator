@@ -1,28 +1,19 @@
-# game_core.py — игровой движок World Economic Simulator
-# Содержит: классы Country, Attack, EconomicConnection и основной класс GlobalEconomyGame
-# Все игровые расчёты (атаки, распространение кризиса, квиз) находятся здесь
+import json
+import random
+from typing import Dict, List, Tuple, Optional
+from dataclasses import dataclass
+from lessons import LESSONS
 
-import json    # для чтения balance.json и сериализации состояния игры
-import random  # для случайных событий (random.choice, random.random, random.randint)
-from typing import Dict, List, Tuple, Optional  # подсказки типов — код читается как документация
-from dataclasses import dataclass  # декоратор, который автоматически генерирует __init__, __repr__ для класса-данных
-from lessons import LESSONS  # словарь образовательных текстов из lessons.py
 
-# @dataclass автоматически создаёт метод __init__ с аргументами для всех полей ниже —
-# не нужно писать def __init__(self, from_country, to_country, ...) вручную
 @dataclass
 class EconomicConnection:
-    """Представляет экономическую связь между двумя странами"""
-    from_country: str    # страна-источник связи (например, Германия)
-    to_country: str      # страна-получатель (например, Россия)
-    connection_type: str # тип: 'trade' (торговля), 'debt' (долг), 'energy' (энергия)
-    strength: float      # сила связи от 0 до 1: чем выше, тем больше урон передаётся
-    data: dict           # дополнительные параметры (например, сумма долга в млрд)
+    from_country: str
+    to_country: str
+    connection_type: str  # 'trade', 'debt', 'energy'
+    strength: float       # 0–1, сила связи
+    data: dict
 
-# -----------------------------------------------------------------------------
-# Country — модель одной страны с её экономическими показателями
-# Данные загружаются из balance.json; методы take_damage/recover меняют здоровье
-# -----------------------------------------------------------------------------
+
 class Country:
     def __init__(self, data: dict):
         self.name = data['name']
@@ -134,11 +125,6 @@ class Attack:
         self.tooltip = data.get('tooltip', '')
         self.multipliers = data.get('multipliers', {})
 
-# -----------------------------------------------------------------------------
-# GlobalEconomyGame — центральный класс игры
-# Хранит состояние всех стран, обрабатывает атаки, тики дней и квиз
-# Сохраняется в SQLite через методы to_dict() / from_dict()
-# -----------------------------------------------------------------------------
 class GlobalEconomyGame:
     # Насколько присутствие в альянсе повышает риск раскрытия при атаке
     ALLIANCE_RISK = {
@@ -552,11 +538,6 @@ class GlobalEconomyGame:
         """Распространяет урон через все типы связей (без отслеживания)"""
         self._spread_damage_with_tracking(source_name, initial_damage)
 
-    # -------------------------------------------------------------------------
-    # apply_attack — главная игровая функция
-    # Принимает имя атаки и цели, рассчитывает урон с учётом всех множителей,
-    # списывает IP, обновляет раскрытие и распространяет кризис по графу связей
-    # -------------------------------------------------------------------------
     def apply_attack(self, attack_name: str, target_name: str) -> Tuple[bool, str, dict]:
         if self.game_over:
             return False, "Игра окончена", {}
@@ -681,11 +662,6 @@ class GlobalEconomyGame:
             return " ".join(lessons)
         return None
 
-    # -------------------------------------------------------------------------
-    # daily_update — тик игрового дня (вызывается каждые 10 секунд реального времени)
-    # Списывает IP за обслуживание, снижает раскрытие, восстанавливает/разрушает страны
-    # и с вероятностью 20% запускает случайное экономическое событие
-    # -------------------------------------------------------------------------
     def daily_update(self):
         if self.game_over:
             return
