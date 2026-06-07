@@ -561,32 +561,29 @@ class GlobalEconomyGame:
         if self.game_over:
             return False, "Игра окончена", {}
 
-        # next(генератор) — берёт ПЕРВЫЙ элемент из последовательности (атаку с нужным именем)
         attack = next(a for a in self.attacks if a.name == attack_name)
-        target = self.countries[target_name]  # словарный доступ: O(1) — мгновенно
-        # Стоимость атаки масштабируется на вес страны: атаковать США дороже, чем Мексику
+        target = self.countries[target_name]
         cost = int(attack.base_cost * target.weight)
-        if self.ip < cost:
-            return False, f"Недостаточно очков влияния (нужно {cost})", {}
 
-        # После 2 провалов подряд шанс успеха повышается до 80% (защита от бесконечных неудач)
-        base_chance = 80 if self.consecutive_failures >= 2 else 62
-        # random.randint(1, 100) — случайное число от 1 до 100 включительно; <= 62 означает 62% вероятность успеха
-        success = random.randint(1, 100) <= base_chance
-
-        multiplier, explanation, lesson = self._get_attack_multiplier_and_explanation(attack, target)
-        if not success:
-            multiplier = 0.3
-            explanation = "Операция провалена — цель устояла."
-
+        # Считаем реальную стоимость с учётом раскрытия СРАЗУ — до броска кубика
         reveal_cost_mult = 1.0
         if self.reveal >= 70:
             reveal_cost_mult = 1.30
         elif self.reveal >= 40:
             reveal_cost_mult = 1.15
         effective_cost = int(cost * reveal_cost_mult)
+
         if self.ip < effective_cost:
-            return False, f"Недостаточно очков влияния (нужно {effective_cost}, есть {self.ip})", {}
+            return False, f"Недостаточно очков влияния (нужно {effective_cost})", {}
+
+        # После 2 провалов подряд шанс повышается до 80%
+        base_chance = 80 if self.consecutive_failures >= 2 else 65
+        success = random.randint(1, 100) <= base_chance
+
+        multiplier, explanation, lesson = self._get_attack_multiplier_and_explanation(attack, target)
+        if not success:
+            multiplier = 0.3
+            explanation = "Операция провалена — цель устояла."
 
         # При успехе урон масштабируется на multiplier (может быть >1 или <1 в зависимости от уязвимости цели)
         # При провале — фиксированные 30% базового урона (атака ударила вхолостую)
