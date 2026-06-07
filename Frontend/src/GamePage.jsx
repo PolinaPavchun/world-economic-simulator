@@ -9,7 +9,8 @@ import "./GamePage.css";
 import { WorldMap } from "react-svg-worldmap"; // SVG-карта мира с возможностью кастомизации стран
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Legend, ScatterChart, Scatter, ZAxis, Cell,
+  ResponsiveContainer, Legend, ScatterChart, Scatter, ZAxis,
+  ReferenceLine, Cell,
 } from 'recharts'; // библиотека для графиков: линейный график и scatter-chart (пузырьковая диаграмма)
 import { ConnectionGraph, ALLIANCE_COLORS } from "./ConnectionGraph"; // граф связей между странами
 import { API } from "./api"; // базовый URL бэкенда
@@ -871,8 +872,8 @@ function GamePage({ nickname }) {
           <div className="analytics-chart-section">
             <h4>Долг/ВВП vs Здоровье <span className="chart-badge">Рейнхарт–Рогофф</span></h4>
             <p className="chart-desc">
-              Страны с высоким долгом относительно ВВП, как правило, слабее.
-              Это подтверждает принцип Рейнхарта–Рогоффа: высокий долг замедляет экономический рост.
+              Пунктирная линия — порог 90% ВВП. Страны правее неё, как правило, слабее.
+              Это подтверждает: высокий долг замедляет экономический рост.
             </p>
             <div style={{ width: '100%', height: 220 }}>
               <ResponsiveContainer>
@@ -882,6 +883,8 @@ function GamePage({ nickname }) {
                   <YAxis dataKey="y" name="Здоровье" unit="%" stroke="#88aacc" domain={[0, 100]} fontSize={11} />
                   <ZAxis dataKey="z" range={[40, 200]} />
                   <Tooltip content={<ScatterTip />} />
+                  <ReferenceLine x={90} stroke="#ff6666" strokeDasharray="5,3"
+                    label={{ value: "90% — опасно", fill: "#ff8888", fontSize: 10, position: "insideTopRight" }} />
                   <Scatter data={scatterData}>
                     {scatterData.map((d, i) => <Cell key={i} fill={getHealthColor(d.y)} opacity={0.85} />)}
                   </Scatter>
