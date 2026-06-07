@@ -687,6 +687,7 @@ class GlobalEconomyGame:
     def daily_update(self):
         if self.game_over:
             return
+        self.last_event = ""  # сбрасываем, чтобы старое событие не всплывало повторно
         self.day += 1
         self.ip = max(0, self.ip - self.global_params['daily_maintenance_cost'])
         # Давление спадает само по себе — просто ждать тоже стратегия
