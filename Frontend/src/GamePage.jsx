@@ -197,6 +197,50 @@ function GamePage({ nickname }) {
 
   // Режим подсказок — показывает уязвимости и эффективность атак, сохраняется между сессиями.
   const [hintMode, setHintMode] = useState(() => localStorage.getItem("hintMode") !== "off");
+
+  // Состояние и рефы для pan/zoom карты.
+  const [mapTransform, setMapTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const isPanningRef = useRef(false);
+  const panStartRef = useRef({ x: 0, y: 0 });
+  const panOriginRef = useRef({ x: 0, y: 0 });
+  const dragDistRef = useRef(0);
+
+  const handleMapMouseDown = (e) => {
+    if (e.button !== 0) return;
+    isPanningRef.current = true;
+    dragDistRef.current = 0;
+    panStartRef.current = { x: e.clientX, y: e.clientY };
+    panOriginRef.current = { x: mapTransform.x, y: mapTransform.y };
+    e.preventDefault();
+  };
+
+  const handleMapMouseMove = (e) => {
+    if (!isPanningRef.current) return;
+    const dx = e.clientX - panStartRef.current.x;
+    const dy = e.clientY - panStartRef.current.y;
+    dragDistRef.current = Math.sqrt(dx * dx + dy * dy);
+    setMapTransform(t => ({ ...t, x: panOriginRef.current.x + dx, y: panOriginRef.current.y + dy }));
+  };
+
+  const handleMapMouseUp = () => { isPanningRef.current = false; };
+
+  const handleMapWheel = (e) => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.15 : 0.87;
+    setMapTransform(t => ({ ...t, scale: Math.max(0.5, Math.min(5, t.scale * factor)) }));
+  };
+
+  const resetMapView = () => setMapTransform({ x: 0, y: 0, scale: 1 });
+
+  // Подключаем wheel как non-passive — иначе preventDefault не работает в Chrome/Safari.
+  const mapWrapperRef = useRef(null);
+  useEffect(() => {
+    const el = mapWrapperRef.current;
+    if (!el) return;
+    el.addEventListener('wheel', handleMapWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleMapWheel);
+  });
+
   const toggleHintMode = () => setHintMode(prev => {
     const next = !prev;
     localStorage.setItem("hintMode", next ? "on" : "off");
@@ -661,8 +705,21 @@ function GamePage({ nickname }) {
 
         <div className="game-layout">
           <div className="map-container">
-            <div className="world-map-wrapper">
-              <WorldMap key={mapVersion} data={mapData} styleFunction={getStyle} onClickFunction={handleCountryClick} tooltipTextFunction={getTooltipText} />
+            <div
+              ref={mapWrapperRef}
+              className="world-map-wrapper"
+              onMouseDown={handleMapMouseDown}
+              onMouseMove={handleMapMouseMove}
+              onMouseUp={handleMapMouseUp}
+              onMouseLeave={handleMapMouseUp}
+              onClickCapture={(e) => { if (dragDistRef.current > 5) e.stopPropagation(); }}
+            >
+              <div style={{ transform: `translate(${mapTransform.x}px, ${mapTransform.y}px) scale(${mapTransform.scale})`, transformOrigin: 'center', width: '100%', height: '100%', willChange: 'transform' }}>
+                <WorldMap key={mapVersion} data={mapData} styleFunction={getStyle} onClickFunction={handleCountryClick} tooltipTextFunction={getTooltipText} />
+              </div>
+              {(mapTransform.x !== 0 || mapTransform.y !== 0 || mapTransform.scale !== 1) && (
+                <button className="map-reset-btn" onClick={resetMapView} title="Сбросить вид карты">⌂</button>
+              )}
             </div>
             <div className="crisis-legend">
               <div className="legend-item"><span className="color green" />Здорова &gt;60%</div>
