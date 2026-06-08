@@ -1,14 +1,24 @@
-Backend/__pycache__/
-Backend/venv/
-Backend/*.pyc
+# База данных — не коммитить, у каждого окружения своя
 Backend/users.sqlite
-Backend/balance_old.json
-Backend/game_core_old.py
+Backend/users.sqlite-journal
+Backend/users.sqlite-wal
+Backend/users.sqlite-shm
 
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+Backend/venv/
+
+# Node / Frontend build
 Frontend/node_modules/
 Frontend/dist/
-Frontend/.env.local
-Frontend/src/GamePage_old.jsx
+Frontend/.vite/
 
+# OS
 .DS_Store
-**/.DS_Store
+Thumbs.db
+
+# Env secrets
+.env
+.env.*

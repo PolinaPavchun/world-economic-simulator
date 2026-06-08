@@ -51,10 +51,7 @@
       },
       "trade_blocs": [
         "USMCA"
-      ],
-      "central_bank_rate": 5.5,
-      "manufacturing_value_added_pct": 11.0,
-      "current_account_balance_pct": -3.0
+      ]
     },
     {
       "name": "Китай",
@@ -101,10 +98,7 @@
       },
       "trade_blocs": [
         "RCEP"
-      ],
-      "central_bank_rate": 3.45,
-      "manufacturing_value_added_pct": 27.0,
-      "current_account_balance_pct": 1.8
+      ]
     },
     {
       "name": "Россия",
@@ -145,10 +139,7 @@
       "energy_dependencies": {},
       "trade_blocs": [
         "ЕАЭС"
-      ],
-      "central_bank_rate": 16.0,
-      "manufacturing_value_added_pct": 13.0,
-      "current_account_balance_pct": 4.0
+      ]
     },
     {
       "name": "Германия",
@@ -200,10 +191,7 @@
       "trade_blocs": [
         "ЕС",
         "ЕАСТ"
-      ],
-      "central_bank_rate": 4.5,
-      "manufacturing_value_added_pct": 23.0,
-      "current_account_balance_pct": 6.5
+      ]
     },
     {
       "name": "Франция",
@@ -253,10 +241,7 @@
       },
       "trade_blocs": [
         "ЕС"
-      ],
-      "central_bank_rate": 4.5,
-      "manufacturing_value_added_pct": 10.0,
-      "current_account_balance_pct": -0.5
+      ]
     },
     {
       "name": "Великобритания",
@@ -304,10 +289,7 @@
         "Россия": 0.15,
         "Катар": 0.1
       },
-      "trade_blocs": [],
-      "central_bank_rate": 5.25,
-      "manufacturing_value_added_pct": 9.0,
-      "current_account_balance_pct": -3.5
+      "trade_blocs": []
     },
     {
       "name": "Япония",
@@ -349,10 +331,7 @@
       },
       "trade_blocs": [
         "CPTPP"
-      ],
-      "central_bank_rate": 0.1,
-      "manufacturing_value_added_pct": 20.0,
-      "current_account_balance_pct": 3.0
+      ]
     },
     {
       "name": "Индия",
@@ -398,10 +377,7 @@
       },
       "trade_blocs": [
         "SAARC"
-      ],
-      "central_bank_rate": 6.5,
-      "manufacturing_value_added_pct": 15.0,
-      "current_account_balance_pct": -1.5
+      ]
     },
     {
       "name": "Бразилия",
@@ -438,10 +414,7 @@
       "energy_dependencies": {},
       "trade_blocs": [
         "Mercosur"
-      ],
-      "central_bank_rate": 11.25,
-      "manufacturing_value_added_pct": 11.0,
-      "current_account_balance_pct": -0.5
+      ]
     },
     {
       "name": "Канада",
@@ -486,10 +459,7 @@
       "energy_dependencies": {},
       "trade_blocs": [
         "USMCA"
-      ],
-      "central_bank_rate": 5.0,
-      "manufacturing_value_added_pct": 10.0,
-      "current_account_balance_pct": 0.5
+      ]
     },
     {
       "name": "Южная Корея",
@@ -531,10 +501,7 @@
       },
       "trade_blocs": [
         "RCEP"
-      ],
-      "central_bank_rate": 3.5,
-      "manufacturing_value_added_pct": 25.0,
-      "current_account_balance_pct": 4.0
+      ]
     },
     {
       "name": "Австралия",
@@ -572,10 +539,7 @@
       "energy_dependencies": {},
       "trade_blocs": [
         "RCEP"
-      ],
-      "central_bank_rate": 4.35,
-      "manufacturing_value_added_pct": 6.0,
-      "current_account_balance_pct": 1.0
+      ]
     },
     {
       "name": "Мексика",
@@ -615,10 +579,7 @@
       },
       "trade_blocs": [
         "USMCA"
-      ],
-      "central_bank_rate": 11.0,
-      "manufacturing_value_added_pct": 18.0,
-      "current_account_balance_pct": -0.5
+      ]
     },
     {
       "name": "Турция",
@@ -658,10 +619,7 @@
         "Иран": 0.2,
         "Азербайджан": 0.15
       },
-      "trade_blocs": [],
-      "central_bank_rate": 50.0,
-      "manufacturing_value_added_pct": 19.0,
-      "current_account_balance_pct": -4.0
+      "trade_blocs": []
     },
     {
       "name": "Саудовская Аравия",
@@ -694,10 +652,7 @@
       "energy_dependencies": {},
       "trade_blocs": [
         "GCC"
-      ],
-      "central_bank_rate": 5.75,
-      "manufacturing_value_added_pct": 7.0,
-      "current_account_balance_pct": 8.0
+      ]
     },
     {
       "name": "ЮАР",
@@ -738,10 +693,7 @@
       },
       "trade_blocs": [
         "SADC"
-      ],
-      "central_bank_rate": 8.25,
-      "manufacturing_value_added_pct": 12.0,
-      "current_account_balance_pct": -1.0
+      ]
     }
   ],
   "attacks": [
@@ -856,33 +808,7 @@
     "contagion_factor": 0.45,
     "recovery_rate_high": 3,
     "recovery_rate_medium": 1,
-    "recovery_rate_low": 0,
     "daily_maintenance_cost": 10,
-    "reveal_decay": 2,
-    "trade_bloc_bonus": 1.0,
-    "debt_crisis_threshold": 90,
-    "reserve_crisis_threshold": 50
-  },
-  "economic_lessons": {
-    "Эффект домино": {
-      "description": "Кризис в одной стране распространяется на торговых партнёров и кредиторов",
-      "real_example": "Кризис 2008 года в США быстро распространился на Европу через финансовые связи",
-      "data_point": "США экспортируют товаров на $2.5 трлн ежегодно — проблемы в США бьют по всем партнёрам"
-    },
-    "Долговая ловушка": {
-      "description": "Высокий долг увеличивает стоимость новых заимствований",
-      "real_example": "Греция в 2010 году: долг 146% ВВП → процентные ставки 30% → дефолт",
-      "data_point": "Когда долг > 90% ВВП, экономический рост замедляется на 1-2% в год (исследование Reinhart-Rogoff)"
-    },
-    "Энергетическая уязвимость": {
-      "description": "Zависимость от импорта энергии создаёт риски",
-      "real_example": "Европа 2022: зависимость from российского газа → рост цен → рецессия",
-      "data_point": "Германия импортирует 45% энергии — энергоколлапс эффективен против неё"
-    },
-    "Бегство капитала": {
-      "description": "При нестабильности инвесторы выводят деньги из страны",
-      "real_example": "Турция 2018: политический кризис → лира упала на 40% → резервы истощились",
-      "data_point": "Страны с резервами <$100 млрд особенно уязвимы к оттоку капитала"
-    }
+    "reveal_decay": 2
   }
 }

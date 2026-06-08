@@ -1,23 +1,23 @@
-// GamePage.jsx — основная игровая страница (карта, арсенал, аналитика)
-// Получает nickname как prop от App.jsx и использует его во всех запросах к серверу
+// GamePage.jsx — основная игровая страница: карта, арсенал, граф связей, аналитика.
+// Получает nickname как prop и использует его во всех запросах к серверу.
 
-import React, { useState, useEffect, useRef } from "react";
-// useState — хранит данные компонента (gameState, выбранная страна и т.д.)
-// useEffect — выполняет код при монтировании/обновлении компонента (загрузка игры, таймер)
-// useRef — хранит ссылку на объект между рендерами без перерисовки (intervalRef для таймера)
-import "./GamePage.css";
-import { WorldMap } from "react-svg-worldmap"; // SVG-карта мира с возможностью кастомизации стран
+import React, { useState, useEffect, useRef, useCallback } from "react";
+// useState — хранит данные компонента
+// useEffect — выполняет код при монтировании и по расписанию
+// useRef — хранит интервал таймера без лишних перерисовок
+// useCallback — стабилизирует функцию fetchGameState для useEffect
+import "./GamePage.css";                                              // стили игровой страницы
+import { WorldMap } from "react-svg-worldmap";                       // интерактивная SVG-карта мира
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend, ScatterChart, Scatter, ZAxis,
   ReferenceLine, Cell,
-} from 'recharts'; // библиотека для графиков: линейный график и scatter-chart (пузырьковая диаграмма)
-import { ConnectionGraph, ALLIANCE_COLORS } from "./ConnectionGraph"; // граф связей между странами
-import { API } from "./api"; // базовый URL бэкенда
+} from 'recharts';                                                    // графики: линейный и пузырьковый
+import { ConnectionGraph, ALLIANCE_COLORS } from "./ConnectionGraph"; // граф экономических связей
+import { API } from "./api";                                          // адрес бэкенда
 
 
-// Вычисляет условия применимости атаки к конкретной стране.
-// Возвращает { canUse: bool, reason: string } — используется для цветовой подсветки в Арсенале
+// Вычисляет применимость атаки к стране и возвращает подсказку для Арсенала.
 function computeAttackConditions(attack, country) {
   if (!country) return { canUse: true, reason: "" };
 
@@ -158,12 +158,6 @@ const ECONOMIC_GLOSSARY = {
   "Энергоимпорт": "Доля потребляемой энергии, которую страна закупает за рубежом. Выше 40% — критическая уязвимость: Энергетический шантаж наносит урон ×2.0. Ниже 40% — страна относительно независима.",
 };
 
-const ALLIANCE_MAP_FILLS = {
-  'НАТО': '#0d2a5a', 'ЕС': '#2a0d5a', 'G7': '#3a3000',
-  'БРИКС': '#3a1500', 'ШОС': '#3a0000', 'Five Eyes': '#003a2a',
-  'Союзник США': '#0d1f3a',
-};
-
 function getHealthColor(h) {
   if (h >= 75) return "#1a6e30";   // насыщенный зелёный — стабильно
   if (h >= 55) return "#3a7a20";   // оливковый — небольшое давление
@@ -185,67 +179,50 @@ const ScatterTip = ({ active, payload }) => {
 };
 
 
-// { nickname } — деструктуризация props: вместо props.nickname пишем просто nickname
 function GamePage({ nickname }) {
-  // null — начальное значение до загрузки данных с сервера
-  const [gameState, setGameState] = useState(null);      // всё состояние игры (IP, страны, раскрытие)
-  const [selectedCountry, setSelectedCountry] = useState(null);  // название выбранной страны-цели
-  const [selectedAttack, setSelectedAttack] = useState(null);    // название выбранной атаки
-  const [log, setLog] = useState([]);           // лог действий в нижней панели (последние 25 событий)
-  const [activeTab, setActiveTab] = useState("map");  // активная вкладка: "map" | "graph" | "attacks" | "analytics"
-  const [toast, setToast] = useState(null);     // всплывающее уведомление (toast) вверху экрана
-  const [showTutorial, setShowTutorial] = useState(false);   // показывать ли инструкцию
-  const [mapVersion, setMapVersion] = useState(0);           // инкремент заставляет карту перерисоваться
-  const [showExplanation, setShowExplanation] = useState(null);  // модалка с результатом атаки
-  const [showDebrief, setShowDebrief] = useState(null);      // модалка победы/поражения
-  const [crisisSpread, setCrisisSpread] = useState([]);      // страны, куда докатилась волна кризиса
-  const [healthHistory, setHealthHistory] = useState([]);    // история здоровья по дням для графика
-  const [showGlossary, setShowGlossary] = useState(false);   // показывать ли глоссарий
-  const [glossaryTerm, setGlossaryTerm] = useState("");      // какой термин открыт в глоссарии
+  // Хранит всё игровое состояние, выбор игрока и состояние UI.
+  const [gameState, setGameState] = useState(null);
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedAttack, setSelectedAttack] = useState(null);
+  const [activeTab, setActiveTab] = useState("map");
+  const [toast, setToast] = useState(null);
+  const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem("tutorialShown"));
+  const [mapVersion, setMapVersion] = useState(0);
+  const [showExplanation, setShowExplanation] = useState(null);
+  const [showDebrief, setShowDebrief] = useState(null);
+  const [crisisSpread, setCrisisSpread] = useState([]);
+  const [healthHistory, setHealthHistory] = useState([]);
+  const [showGlossary, setShowGlossary] = useState(false);
+  const [glossaryTerm, setGlossaryTerm] = useState("");
 
-  // Режим подсказок — показывает/скрывает уязвимости и эффективность атак
-  // () => ... — ленивый инициализатор useState: выполняется один раз при монтировании
-  // localStorage — браузерное хранилище, сохраняется между сессиями
+  // Режим подсказок — показывает уязвимости и эффективность атак, сохраняется между сессиями.
   const [hintMode, setHintMode] = useState(() => localStorage.getItem("hintMode") !== "off");
   const toggleHintMode = () => setHintMode(prev => {
-    const next = !prev; // инвертируем
-    localStorage.setItem("hintMode", next ? "on" : "off"); // сохраняем в localStorage
+    const next = !prev;
+    localStorage.setItem("hintMode", next ? "on" : "off");
     return next;
   });
 
-  // Quiz state — quizMinimized позволяет скрыть модалку без потери вопроса
-  const [quizData, setQuizData] = useState(null);       // данные текущего вопроса
-  const [quizSelected, setQuizSelected] = useState(null); // выбранный игроком вариант
-  const [quizResult, setQuizResult] = useState(null);   // результат проверки ответа
-  const [quizMinimized, setQuizMinimized] = useState(false); // свёрнут ли квиз
-  const [showCases, setShowCases] = useState(null); // название атаки для модалки реальных кейсов
-  // useRef создаёт объект {current: null}, который живёт между рендерами и НЕ вызывает перерисовку
-  // Нужен для хранения ID интервала, чтобы очистить его при размонтировании компонента
-  const intervalRef = useRef(null);
+  const [quizData, setQuizData] = useState(null);
+  const [quizSelected, setQuizSelected] = useState(null);
+  const [quizResult, setQuizResult] = useState(null);
+  const [quizMinimized, setQuizMinimized] = useState(false);
+  const [showCases, setShowCases] = useState(null);
+  const intervalRef = useRef(null);  // ID игрового таймера — нужен для очистки при выходе
 
-  // useEffect с пустым массивом [] — выполняется ОДИН РАЗ при монтировании компонента
-  // Показываем туториал если ещё не видели (ключ в localStorage отсутствует)
-  useEffect(() => {
-    if (!localStorage.getItem("tutorialShown")) setShowTutorial(true);
-  }, []); // [] = зависимости пустые → эффект не повторяется при обновлении state
-
-  const fetchGameState = async () => {
+  const fetchGameState = useCallback(async () => {
+    // Загружает текущее состояние игры с сервера и обновляет историю здоровья.
     try {
-      // GET-запрос: nickname передаётся в строке запроса (?nickname=...)
       const res = await fetch(`${API}/game/state?nickname=${nickname}`);
       const data = await res.json();
       setGameState(data);
-      // Добавляем новую точку в историю здоровья для графика
-      // prev.slice(-30) — берём последние 30 дней (старые выбрасываем)
-      // ...spread — разворачиваем массив
-      // Object.fromEntries([["США", 85], ["Китай", 72], ...]) — создаём объект из массива пар [ключ, значение]
       setHealthHistory(prev => [...prev.slice(-30), {
         day: data.day,
         global: data.global_health,
         ...Object.fromEntries(data.countries.map(c => [c.name, c.economic_health]))
       }]);
-    } catch { /* silent — не показываем ошибку, просто ждём следующего тика */ }
-  };
+    } catch { /* не показываем ошибку — просто ждём следующего тика */ }
+  }, [nickname]);
 
   const resetGame = async () => {
     if (!window.confirm("Начать заново? Прогресс будет потерян.")) return;
@@ -258,7 +235,7 @@ function GamePage({ nickname }) {
       if (res.ok) {
         setGameState(data.state); setSelectedCountry(null); setSelectedAttack(null);
         setMapVersion(v => v + 1); setHealthHistory([]); setCrisisSpread([]);
-        addLog("Игра сброшена"); showToast("Новая игра", "success");
+        showToast("Новая игра", "success");
       }
     } catch { showToast("Ошибка соединения", "error"); }
   };
@@ -271,7 +248,6 @@ function GamePage({ nickname }) {
         body: JSON.stringify({ nickname, attack_name: selectedAttack, target_name: selectedCountry }),
       });
       const data = await res.json();
-      addLog(data.message);
       setGameState(data.state);
       setMapVersion(v => v + 1);
       if (data.state) {
@@ -331,58 +307,42 @@ function GamePage({ nickname }) {
     } catch { showToast("Ошибка", "error"); }
   };
 
-  // useEffect с [nickname] — запускается при монтировании и при смене nickname (перелогине)
   useEffect(() => {
-    fetchGameState(); // загружаем начальное состояние сразу при входе
-    // setInterval вызывает функцию каждые 10 000 мс (= 10 секунд) — это игровой тик
-    // Сохраняем ID в intervalRef.current, чтобы потом остановить таймер
+    // Загружает состояние при входе и запускает игровой тик каждые 10 секунд.
+    fetchGameState();
     intervalRef.current = setInterval(async () => {
       try {
-        // POST-запрос к /game/daily: сервер обновляет состояние (восстановление, коллапс, события)
         const res = await fetch(`${API}/game/daily`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ nickname }),
         });
         const s = await res.json();
         setGameState(s);
-        setMapVersion(v => v + 1); // инкремент ключа карты → React перерисует карту с новыми цветами
+        setMapVersion(v => v + 1);
         setHealthHistory(prev => [...prev.slice(-30), {
           day: s.day, global: s.global_health,
           ...Object.fromEntries(s.countries.map(c => [c.name, c.economic_health]))
         }]);
         if (s.game_over) {
-          // Array.reduce с коллбэком сравнения: находит страну с наименьшим healthом
           const worst = s.countries.reduce((a, b) => a.economic_health < b.economic_health ? a : b);
           setShowDebrief({ winner: s.win, worst: worst.name, worstHealth: worst.economic_health });
         }
       } catch { /* silent */ }
     }, 10000);
-    // Функция очистки: React вызывает её при размонтировании компонента
-    // clearInterval останавливает таймер — без этого он продолжал бы работать после выхода
     return () => clearInterval(intervalRef.current);
-  }, [nickname]);
+  }, [nickname, fetchGameState]);
 
-  const addLog = msg => {
-    // toLocaleTimeString с опциями форматирует время как "14:35"
-    const t = new Date().toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' });
-    // prev — предыдущее значение лога; новое сообщение вставляем В НАЧАЛО (prepend)
-    // slice(0, 25) — обрезаем до 25 сообщений, чтобы лог не рос бесконечно
-    setLog(prev => [`${t} ${msg}`, ...prev].slice(0, 25));
-  };
   const showToast = (msg, type = "info") => {
-    // type = "info" — значение по умолчанию, если второй аргумент не передан
+    // Показывает всплывающее уведомление и скрывает его через 5 секунд.
     setToast({ msg, type });
-    // setTimeout убирает toast через 5 секунд: передаём null → React скрывает элемент
     setTimeout(() => setToast(null), 5000);
   };
 
-  // Пока данные не загружены — показываем заглушку (gameState === null при первом рендере)
   if (!gameState) return <div className="loading">Загрузка...</div>;
 
-  // Деструктуризация: вытаскиваем нужные поля из gameState одной строкой
   const { ip, reveal, reveal_level, quiz_remaining, day, game_over, win, global_health, countries, attacks } = gameState;
 
-  // Таблица соответствия: русское название страны → двухбуквенный ISO-код для SVG-карты
+  // Таблица соответствия: русское название страны → ISO-код для SVG-карты
   const countryCodeMap = {
     "США": "US", "Китай": "CN", "Россия": "RU", "Германия": "DE",
     "Франция": "FR", "Великобритания": "GB", "Япония": "JP", "Индия": "IN",
@@ -390,29 +350,22 @@ function GamePage({ nickname }) {
     "Турция": "TR", "ЮАР": "ZA", "Южная Корея": "KR", "Саудовская Аравия": "SA",
   };
 
-  // Преобразуем массив стран в формат, который ожидает библиотека WorldMap
-  // .filter(x => x.country) убирает страны без ISO-кода (не должно быть, но на всякий случай)
   const mapData = countries.map(c => ({ country: countryCodeMap[c.name], value: c.economic_health, name: c.name })).filter(x => x.country);
 
-  // Функция стилизации для каждой страны на карте — вызывается библиотекой WorldMap
+  // Возвращает стили для каждой страны на SVG-карте в зависимости от её состояния.
   const getStyle = ({ countryCode }) => {
-    // Object.keys(...).find(...) — ищем русское название по ISO-коду (обратный поиск по словарю)
     const name = Object.keys(countryCodeMap).find(k => countryCodeMap[k] === countryCode);
     const country = countries.find(c => c.name === name);
-    // Страна не в нашей игре (например, Антарктида) — рисуем нейтральным цветом
     if (!country) return { fill: '#0a1225', stroke: '#3a6a9a', strokeWidth: 1, cursor: 'default' };
-    const isSelected = selectedCountry === name;   // выбрана как цель атаки
-    const isAffected = crisisSpread.find(a => a.country === name); // затронута волной кризиса
-    const isCollapsing = country.economic_health < 20; // ниже 20% — страна коллапсирует
-    // Приоритет цвета: волна кризиса > цвет здоровья
+    const isSelected = selectedCountry === name;
+    const isAffected = crisisSpread.find(a => a.country === name);
+    const isCollapsing = country.economic_health < 20;
     const fill = isAffected ? '#ff4444' : getHealthColor(country.economic_health);
     return {
       fill,
-      // Тернарные операторы задают цвет границы страны в зависимости от состояния
       stroke: isSelected ? '#00ffff' : isCollapsing ? '#ff5533' : '#ffffff',
       strokeWidth: isSelected ? 3 : isCollapsing ? 2 : 1,
       cursor: 'pointer',
-      // CSS filter drop-shadow создаёт свечение вокруг выбранной/коллапсирующей страны
       filter: isSelected
         ? 'drop-shadow(0 0 8px #00ffff)'
         : isCollapsing
@@ -426,7 +379,6 @@ function GamePage({ nickname }) {
     const name = Object.keys(countryCodeMap).find(k => countryCodeMap[k] === countryCode);
     if (!name) return;
     setSelectedCountry(name);
-    addLog(`Цель: ${name}`);
   };
 
   const getTooltipText = ({ countryName }) => {
@@ -441,8 +393,7 @@ function GamePage({ nickname }) {
   };
 
   const selectedCountryData = selectedCountry ? countries.find(c => c.name === selectedCountry) : null;
-  // Данные для scatter chart: x = долг/ВВП%, y = здоровье%, z = размер пузырька (√ВВП)
-  // Math.sqrt(c.gdp) * 8 — квадратный корень даёт визуально пропорциональные круги (площадь ∝ ВВП)
+  // Данные для пузырькового графика: долг, здоровье и размер пузырька по ВВП.
   const scatterData = countries.map(c => ({
     x: Math.round(c.debt / c.gdp * 100), y: c.economic_health,
     z: Math.sqrt(c.gdp) * 8, name: c.name,
@@ -683,6 +634,31 @@ function GamePage({ nickname }) {
 
       {/* MAP TAB */}
       {activeTab === "map" && (
+        <div className="map-tab-wrapper">
+          <div className="map-toolbar">
+            <div className="map-toolbar-left">
+              <span className="map-toolbar-label">Атака:</span>
+              <select
+                className="map-toolbar-select"
+                value={selectedAttack || ""}
+                onChange={e => setSelectedAttack(e.target.value || null)}
+              >
+                <option value="">{selectedCountry ? "— выбери атаку —" : "— сначала выбери страну —"}</option>
+                {selectedCountry && attacks.map(a => {
+                  const cond = selectedCountryData ? computeAttackConditions(a, selectedCountryData) : { canUse: true, reason: "" };
+                  return (
+                    <option key={a.name} value={a.name}>
+                      {a.name} ({a.cost} IP){cond.reason ? ` — ${cond.reason}` : ""}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            <button className="map-toolbar-attack-btn" onClick={performAttack} disabled={game_over || !selectedCountry || !selectedAttack}>
+              {selectedAttack && selectedCountry ? `Атаковать` : "Выбери страну и атаку"}
+            </button>
+          </div>
+
         <div className="game-layout">
           <div className="map-container">
             <div className="world-map-wrapper">
@@ -764,7 +740,7 @@ function GamePage({ nickname }) {
             )}
 
             <button className="attack-action" onClick={performAttack} disabled={game_over || !selectedCountry || !selectedAttack}>
-              {selectedAttack ? `Атаковать: ${selectedAttack}` : selectedCountry ? "Выбери атаку в Арсенале" : "Выбери страну и атаку"}
+              {selectedAttack ? `Атаковать: ${selectedAttack}` : selectedCountry ? "Выбери атаку выше" : "Выбери страну на карте"}
             </button>
 
             <button
@@ -780,6 +756,7 @@ function GamePage({ nickname }) {
 
           </div>
         </div>
+        </div>
       )}
 
       {/* GRAPH TAB */}
@@ -792,7 +769,7 @@ function GamePage({ nickname }) {
             </p>
           </div>
           <ConnectionGraph countries={countries} selectedCountry={selectedCountry}
-            onSelectCountry={name => { setSelectedCountry(name); if (name) addLog(`Цель: ${name}`); }} />
+            onSelectCountry={name => setSelectedCountry(name)} />
         </div>
       )}
 

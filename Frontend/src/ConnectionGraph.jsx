@@ -1,55 +1,45 @@
-// ConnectionGraph.jsx — интерактивный граф экономических связей между странами
-// Реализует физическую симуляцию (force-directed layout) прямо в браузере без сторонних библиотек:
-// узлы отталкиваются друг от друга, рёбра притягивают связанные страны на оптимальное расстояние
+// ConnectionGraph.jsx — интерактивный граф экономических связей между странами.
+// Физическая симуляция (force-directed layout): узлы отталкиваются, рёбра притягивают.
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-// useMemo — кешируем дорогие вычисления: пересчитываем только при изменении зависимостей
+// useEffect — запускает симуляцию при монтировании
+// useMemo — кеширует список рёбер, не пересчитывает без изменений
 
 // Цвета рёбер по типу связи
 const CONN_COLORS = { trade: '#2ecc71', debt: '#e74c3c', energy: '#f39c12' };
 // Подписи для кнопок-фильтров
 const CONN_LABELS = { trade: 'Торговля', debt: 'Долг', energy: 'Энергия' };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const ALLIANCE_COLORS = {
   'НАТО': '#4488ff', 'ЕС': '#aa44ff', 'G7': '#ffdd44',
   'БРИКС': '#ff8844', 'ШОС': '#ff4444', 'Five Eyes': '#00ffcc',
   'Союзник США': '#88bbff', 'ЕАЭС': '#ff66aa',
 };
 
-// Arrows point in the direction resources/money FLOW:
-// Energy: supplier → importer  (energy flows to importer)
-// Debt:   creditor → debtor    (money flows to debtor)
-// Trade:  undirected           (mutual exchange)
-// Строит список всех рёбер графа из данных стран
+// Строит список всех рёбер графа из данных стран.
+// Торговля — двусторонняя (без стрелки), долг и энергия — направленные.
 function buildAllEdges(countries) {
   const edges = [];
-  // Set — множество без дублей; O(1) проверка наличия элемента (быстрее массива)
   const names = new Set(countries.map(c => c.name));
 
-  // Для торговли — дедупликация: одно ребро на пару, чтобы не рисовать дважды
-  // (Германия↔Франция = Франция↔Германия — это одна связь)
   const tradeSet = new Set();
   countries.forEach(c => {
-    // Object.entries возвращает массив пар [ключ, значение] из объекта
     Object.entries(c.trade_partners || {}).forEach(([partner, share]) => {
-      if (!names.has(partner)) return; // партнёра нет в игре — пропускаем
-      // .sort() сортирует имена алфавитно → одинаковый ключ независимо от порядка
-      // .join('|') склеивает в строку "Германия|Франция"
+      if (!names.has(partner)) return;
       const key = [c.name, partner].sort().join('|');
-      if (tradeSet.has(key)) return; // уже добавили эту пару — пропускаем
+      if (tradeSet.has(key)) return;
       tradeSet.add(key);
-      // directed: false — торговля двусторонняя, стрелки не нужны
       edges.push({ source: c.name, target: partner, type: 'trade', strength: share, directed: false });
     });
 
-    // Долг: кредитор → должник (стрелка показывает куда текут деньги)
+    // Долг: стрелка от кредитора к должнику
     Object.entries(c.external_debt_holders || {}).forEach(([creditor, amount]) => {
       if (names.has(creditor))
-        // Math.min(amount / 1200, 1) — нормализуем силу связи в диапазон 0–1 (1200 = максимальный долг)
         edges.push({ source: creditor, target: c.name, type: 'debt', strength: Math.min(amount / 1200, 1), directed: true });
     });
 
-    // Энергия: поставщик → импортёр (стрелка показывает куда течёт ресурс)
+    // Энергия: стрелка от поставщика к импортёру
     Object.entries(c.energy_dependencies || {}).forEach(([supplier, share]) => {
       if (names.has(supplier))
         edges.push({ source: supplier, target: c.name, type: 'energy', strength: share, directed: true });
@@ -79,87 +69,74 @@ export function ConnectionGraph({ countries, selectedCountry, onSelectCountry })
   const countryLen = countries?.length || 0;
 
   useEffect(() => {
+    // Запускает физическую симуляцию при изменении числа стран.
     if (!countryLen) return;
     setSimDone(false);
     const all = buildAllEdges(countries);
     const n = countries.length;
 
-    // Раскладываем узлы по окружности как начальные позиции
+    // Начальные позиции узлов — равномерно по окружности
     nodesRef.current = countries.map((c, i) => {
-      // Равномерно распределяем по окружности: θ = угол для i-го узла
-      // - Math.PI / 2 сдвигает, чтобы первая страна была вверху, а не справа
       const θ = (2 * Math.PI * i) / n - Math.PI / 2;
-      const r = Math.min(W, H) * 0.32; // радиус начальной окружности — 32% от меньшей стороны
-      // Math.cos/sin — тригонометрия для перевода полярных координат в декартовы
+      const r = Math.min(W, H) * 0.32;
       return { id: c.name, x: W / 2 + r * Math.cos(θ), y: H / 2 + r * Math.sin(θ), vx: 0, vy: 0, weight: c.weight || 1 };
     });
 
-    if (rafRef.current) cancelAnimationFrame(rafRef.current); // отменяем предыдущую анимацию если была
-    let α = 1.0; // "температура" симуляции: начинается с 1, охлаждается до 0
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    let α = 1.0; // температура симуляции: убывает до нуля
 
     const tick = () => {
-      α *= 0.993; // умножение на < 1 каждый кадр: α убывает по экспоненте (геометрическая прогрессия)
-      if (α < 0.004) { // симуляция "остыла" — останавливаемся
+      α *= 0.993;
+      if (α < 0.004) {
         setPositions(Object.fromEntries(nodesRef.current.map(nd => [nd.id, { x: nd.x, y: nd.y }])));
         setSimDone(true);
         return;
       }
       const nds = nodesRef.current;
-      // Сила отталкивания между всеми парами узлов (Coulomb repulsion)
-      // O(n²) — для 16 стран вполне быстро
+      // Отталкивание между всеми парами узлов
       for (let i = 0; i < nds.length; i++) {
         for (let j = i + 1; j < nds.length; j++) {
           const dx = nds[i].x - nds[j].x, dy = nds[i].y - nds[j].y;
-          const d2 = (dx * dx + dy * dy) || 1; // || 1 защита от деления на ноль (если узлы совпали)
+          const d2 = (dx * dx + dy * dy) || 1;
           const d = Math.sqrt(d2);
-          const f = (5500 / d2) * α; // сила обратно пропорциональна квадрату расстояния
-          // dx/d, dy/d — единичный вектор направления; умножаем на силу
+          const f = (5500 / d2) * α;
           nds[i].vx += (dx / d) * f; nds[i].vy += (dy / d) * f;
           nds[j].vx -= (dx / d) * f; nds[j].vy -= (dy / d) * f;
         }
       }
-      // Сила притяжения вдоль рёбер (пружина Гука): стремится к ideal-расстоянию
+      // Притяжение вдоль рёбер к желаемому расстоянию
       all.forEach(e => {
         const s = nds.find(nd => nd.id === e.source), t = nds.find(nd => nd.id === e.target);
         if (!s || !t) return;
         const dx = t.x - s.x, dy = t.y - s.y, d = Math.sqrt(dx * dx + dy * dy) || 1;
-        const ideal = e.type === 'trade' ? 155 : 185; // желаемое расстояние между связанными узлами
-        // (d - ideal) — отклонение от желаемого; положительное = слишком далеко → притягиваем
+        const ideal = e.type === 'trade' ? 155 : 185;
         const f = (d - ideal) * 0.007 * α * (0.4 + e.strength);
         s.vx += (dx / d) * f; s.vy += (dy / d) * f;
         t.vx -= (dx / d) * f; t.vy -= (dy / d) * f;
       });
       nds.forEach(nd => {
-        // Слабое притяжение к центру холста — узлы не "улетают" за края
+        // Слабое притяжение к центру — узлы не улетают за края
         nd.vx += (W / 2 - nd.x) * 0.003 * α; nd.vy += (H / 2 - nd.y) * 0.003 * α;
-        nd.vx *= 0.84; nd.vy *= 0.84; // затухание скорости (трение): 0.84 < 1 → скорость убывает
-        // Ограничиваем позиции, чтобы узлы не выходили за границы SVG
+        nd.vx *= 0.84; nd.vy *= 0.84;
         nd.x = Math.max(70, Math.min(W - 70, nd.x + nd.vx));
         nd.y = Math.max(40, Math.min(H - 40, nd.y + nd.vy));
       });
-      // Обновляем React-state с текущими позициями → SVG перерисовывается
       setPositions(Object.fromEntries(nds.map(nd => [nd.id, { x: nd.x, y: nd.y }])));
-      // requestAnimationFrame — вызывает tick перед следующим кадром браузера (≈60 FPS)
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countryLen]);
 
-  // Переключаем фильтр типа рёбер: если уже активен — убираем, иначе добавляем
-  // p.filter(x => x !== t) — новый массив без элемента t
-  // [...p, t] — новый массив с добавленным t
+  // Включает или выключает отображение рёбер выбранного типа.
   const toggleFilter = t => setFilterTypes(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t]);
 
-  // useMemo кеширует результат buildAllEdges — пересчитываем только при изменении числа стран
-  const allEdges = useMemo(() => buildAllEdges(countries || []), [countryLen]);
-  // Показываем только рёбра выбранных типов
+  const allEdges = useMemo(() => buildAllEdges(countries || []), [countries]);
   const visibleEdges = allEdges.filter(e => filterTypes.includes(e.type));
 
-  // Активный узел: наведение мышью имеет приоритет над выбором кликом
+  // Наведение мышью имеет приоритет над кликом при подсветке связей.
   const activeNode = hovered || selectedCountry;
-  // Множество стран, связанных с активным узлом — все остальные будут затемнены
-  // flatMap([e.source, e.target]) — разворачивает вложенные массивы в плоский список
   const connectedSet = activeNode
     ? new Set(visibleEdges.filter(e => e.source === activeNode || e.target === activeNode).flatMap(e => [e.source, e.target]))
     : null;
@@ -270,7 +247,7 @@ export function ConnectionGraph({ countries, selectedCountry, onSelectCountry })
               const isSel = selectedCountry === country.name;
               // !! конвертирует в булево; ?. — optional chaining: if connectedSet is null → undefined → false
               const isDim = !!activeNode && !connectedSet?.has(country.name); // затемнить несвязанные
-              // Collect all alliance colors for this country (up to 4)
+              // Цвета альянсов для этой страны — максимум 4 кольца вокруг узла
               const allianceRings = (country.alliances || [])
                 .map(a => ALLIANCE_COLORS[a?.name || a])
                 .filter(Boolean)
@@ -358,7 +335,7 @@ export function ConnectionGraph({ countries, selectedCountry, onSelectCountry })
                   : selectedEdges.map((e, i) => {
                     const isOut = e.source === selectedCountry;
                     const other = isOut ? e.target : e.source;
-                    // Direction label based on type
+                    // Подпись направления связи в зависимости от её типа
                     let dirLabel = '';
                     if (e.type === 'energy') dirLabel = isOut ? 'поставляет в' : 'получает от';
                     else if (e.type === 'debt') dirLabel = isOut ? 'кредитует' : 'должен';

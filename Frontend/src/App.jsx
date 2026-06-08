@@ -1,57 +1,52 @@
-// App.jsx — экран входа/регистрации (первое, что видит пользователь)
-// После успешного входа рендерит GamePage с полем для игры
+// App.jsx — экран входа и регистрации.
+// После успешного входа показывает GamePage.
 
-import React, { useState } from "react"; // React — для JSX; useState — хук для хранения данных компонента
-import { API } from "./api";              // базовый URL бэкенда (например, https://...railway.app)
-import "./App.css";                       // стили: тёмный экран логина, карточка, поля ввода
-import GamePage from "./GamePage";        // компонент игровой страницы — показывается после входа
+import React, { useState } from "react";
+import { API } from "./api";          // адрес бэкенда
+import "./App.css";                   // стили экрана входа
+import GamePage from "./GamePage";    // игровая страница после входа
 
-// Хеширует пароль в браузере через встроенный Web Crypto API перед отправкой на сервер.
-// async — функция асинхронная: crypto.subtle.digest возвращает Promise (обещание результата)
 async function hashPassword(password) {
-  const encoder = new TextEncoder();           // TextEncoder переводит строку в массив байт (Uint8Array)
-  const data = encoder.encode(password);       // превращаем пароль в байты — SHA-256 работает с байтами
-  // crypto.subtle.digest — встроенный браузерный SHA-256; await ждёт результата Promise
+  // Хеширует пароль через SHA-256 прямо в браузере, чтобы не отправлять его в открытом виде.
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  // Array.from превращает ArrayBuffer в обычный массив чисел
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  // Каждое число (0–255) переводим в двузначный hex: toString(16) → hex, padStart(2, "0") → всегда 2 символа
-  // join("") склеивает всё в одну строку из 64 символов
   return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
 function App() {
-  // useState(начальное_значение) возвращает [текущее_значение, функция_обновления]
-  const [nickname, setNickname] = useState("");     // текст в поле "никнейм"
-  const [password, setPassword] = useState("");     // текст в поле "пароль"
-  const [message, setMessage] = useState("");       // сообщение об ошибке/успехе под формой
-  const [loggedIn, setLoggedIn] = useState(false);  // вошёл ли пользователь
-  const [isLogin, setIsLogin] = useState(true);     // true = режим входа, false = режим регистрации
-  const [showTutorial, setShowTutorial] = useState(false); // показывать ли инструкцию после входа
+  // Хранит данные формы и состояние сессии.
+  const [nickname, setNickname] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const handleRegister = async () => {
-    const hashed = await hashPassword(password); // хешируем до отправки — пароль никогда не улетит в открытом виде
+    // Отправляет никнейм и хэш пароля на сервер для создания аккаунта.
+    const hashed = await hashPassword(password);
     try {
-      // fetch — браузерный API для HTTP-запросов; await ждёт ответа сервера
       const response = await fetch(`${API}/register`, {
-        method: "POST",                                              // POST — отправляем данные
-        headers: { "Content-Type": "application/json" },            // сообщаем серверу, что тело — JSON
-        body: JSON.stringify({ nickname, password: hashed })         // JSON.stringify превращает объект в строку
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nickname, password: hashed })
       });
-      const data = await response.json(); // response.json() читает тело ответа и парсит JSON
-      if (response.ok) {                  // ok = true когда HTTP-статус 200–299
+      const data = await response.json();
+      if (response.ok) {
         setMessage(data.message);
-        setIsLogin(true); // после регистрации переключаемся на форму входа
+        setIsLogin(true);
       } else {
         setMessage(data.error);
       }
-    } catch (error) {
-      // catch ловит сетевые ошибки (сервер недоступен, нет интернета)
+    } catch {
       setMessage("Сервер недоступен");
     }
   };
 
   const handleLogin = async () => {
+    // Проверяет учётные данные и открывает игру при успехе.
     const hashed = await hashPassword(password);
     try {
       const response = await fetch(`${API}/login`, {
@@ -61,20 +56,20 @@ function App() {
       });
       const data = await response.json();
       if (response.ok) {
-        setLoggedIn(true);      // переключаем флаг — компонент перерисуется и покажет GamePage
-        setShowTutorial(true);  // показываем инструкцию при первом входе
+        setLoggedIn(true);
+        setShowTutorial(true);
         setMessage("");
       } else {
         setMessage(data.error);
       }
-    } catch (error) {
+    } catch {
       setMessage("Сервер недоступен");
     }
   };
 
-  // Единый обработчик формы: срабатывает при нажатии Enter или кнопки Submit
   const handleSubmit = (e) => {
-    e.preventDefault(); // предотвращаем стандартное поведение браузера (перезагрузку страницы)
+    // Обрабатывает отправку формы — вход или регистрация в зависимости от режима.
+    e.preventDefault();
     if (isLogin) {
       handleLogin();
     } else {
@@ -84,15 +79,11 @@ function App() {
 
   const closeTutorial = () => setShowTutorial(false);
 
-  // Условный рендеринг: если вошли — показываем GamePage (и возможно туториал поверх)
   if (loggedIn) {
     return (
       <>
-        {/* Фрагмент <> позволяет вернуть несколько элементов без лишнего div */}
         {showTutorial && (
-          // onClick на overlay закрывает модалку при клике мимо неё
           <div className="tutorial-overlay" onClick={closeTutorial}>
-            {/* e.stopPropagation() — останавливает всплытие события: клик внутри модалки не закрывает её */}
             <div className="tutorial-modal" onClick={(e) => e.stopPropagation()}>
               <button className="tutorial-close" onClick={closeTutorial}>✕</button>
 
@@ -129,13 +120,11 @@ function App() {
             </div>
           </div>
         )}
-        {/* Передаём nickname как prop — GamePage использует его для всех API-запросов */}
         <GamePage nickname={nickname} />
       </>
     );
   }
 
-  // Форма входа/регистрации (отображается пока loggedIn === false)
   return (
     <div className="auth-container">
       <div className="auth-card">
@@ -144,12 +133,9 @@ function App() {
           <h1>WORLD ECONOMIC</h1>
           <h2>SIMULATOR</h2>
         </div>
-        {/* onSubmit — событие отправки формы; срабатывает при Enter и при клике на кнопку type="submit" */}
         <form onSubmit={handleSubmit}>
           <div className="input-group">
             <div className="input-icon">👤</div>
-            {/* value + onChange — "управляемый компонент": React контролирует значение поля */}
-            {/* e.target.value — текущее значение поля ввода, которое пользователь набрал */}
             <input
               type="text"
               placeholder="Оперативный псевдоним"
@@ -161,37 +147,36 @@ function App() {
           <div className="input-group">
             <div className="input-icon">🔒</div>
             <input
-              type="password"        // type="password" скрывает ввод точками
+              type="password"
               placeholder="Ключ доступа"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
-          {/* type="submit" — эта кнопка отправляет форму (вызывает onSubmit) */}
-          <button type="submit" className="auth-button">
-            {/* Тернарный оператор: если isLogin — "ВОЙТИ", иначе — "АКТИВИРОВАТЬ" */}
+          <button
+            type="submit"
+            className="auth-button"
+            onClick={(e) => { e.preventDefault(); handleSubmit(e); }}
+          >
             {isLogin ? "ВОЙТИ В СИСТЕМУ" : "АКТИВИРОВАТЬ АГЕНТА"}
           </button>
           <div className="auth-switch">
             <p>
               {isLogin ? "Нет доступа? " : "Уже есть доступ? "}
-              {/* type="button" важно: без него кнопка внутри формы отправляет форму */}
               <button
                 type="button"
                 className="switch-button"
                 onClick={() => {
-                  setIsLogin(!isLogin); // ! — инвертируем булево значение (вход ↔ регистрация)
-                  setMessage("");       // убираем старое сообщение об ошибке при переключении
+                  setIsLogin(!isLogin);
+                  setMessage("");
                 }}
               >
                 {isLogin ? "Запросить регистрацию" : "Авторизоваться"}
               </button>
             </p>
           </div>
-          {/* {message && <div>...} — отображаем блок только если message не пустая строка */}
           {message && (
-            // includes("успешн") — проверяем текст, чтобы выбрать CSS-класс success или error
             <div className={`message ${message.includes("успешн") ? "success" : "error"}`}>
               {message}
             </div>
@@ -202,4 +187,4 @@ function App() {
   );
 }
 
-export default App; // экспорт по умолчанию: main.jsx сделает import App from './App.jsx'
+export default App;

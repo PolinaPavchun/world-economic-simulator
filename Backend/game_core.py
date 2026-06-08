@@ -1,12 +1,16 @@
-import json
-import random
-from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass
-from lessons import LESSONS
+# game_core.py — вся игровая логика: страны, атаки, заражение, квиз.
+# Не зависит от Flask — работает как чистая Python-библиотека.
+
+import json            # чтение balance.json
+import random          # случайный выбор вопросов и бросок кубика успеха атаки
+from typing import Dict, List, Tuple  # подсказки типов для читаемости кода
+from dataclasses import dataclass     # удобное создание классов-данных без лишнего кода
+from lessons import LESSONS           # тексты объяснений после каждой атаки
 
 
 @dataclass
 class EconomicConnection:
+    # Одна экономическая связь между двумя странами — торговая, долговая или энергетическая.
     from_country: str
     to_country: str
     connection_type: str  # 'trade', 'debt', 'energy'
@@ -15,6 +19,7 @@ class EconomicConnection:
 
 
 class Country:
+    # Хранит экономические показатели одной страны и методы получения урона и восстановления.
     def __init__(self, data: dict):
         self.name = data['name']
         self.weight = data['weight']
@@ -34,56 +39,33 @@ class Country:
         # Начальные значения — нижняя граница при восстановлении
         self.initial_inflation = data['inflation']
         self.initial_unemployment = data['unemployment']
-        
-        # НОВЫЕ ПОКАЗАТЕЛИ
         self.foreign_reserves = data.get('foreign_reserves_usd_billion', 100)
         self.human_development_index = data.get('human_development_index', 0.7)
         self.corruption_perception_index = data.get('corruption_perception_index', 50)
-        self.central_bank_rate = data.get('central_bank_rate', 5.0)
-        self.manufacturing_value_added_pct = data.get('manufacturing_value_added_pct', 15.0)
-        self.current_account_balance_pct = data.get('current_account_balance_pct', 0.0)
-        
-        # НОВЫЕ ТИПЫ СВЯЗЕЙ
         self.external_debt_holders = data.get('external_debt_holders', {})
         self.energy_dependencies = data.get('energy_dependencies', {})
         self.trade_blocs = data.get('trade_blocs', [])
-        
-        # Флаги для механик
-        self.sanctions_experience = False  # Были ли уже санкции
-        self.capital_controls = False  # Введены ли ограничения на движение капитала
 
     def take_damage(self, damage: int, multiplier: float = 1.0):
-        # int(...) — округляем до целого, чтобы здоровье хранилось в целых числах
+        # Снижает здоровье страны и ухудшает экономические показатели.
         effective = int(damage * multiplier)
-        # max(0, ...) — здоровье не может уйти ниже нуля
         self.economic_health = max(0, self.economic_health - effective)
         if effective > 0:
-            # Чем сильнее удар, тем быстрее растёт безработица; / 20 — коэффициент чувствительности
-            # min(40, ...) — безработица не может быть выше 40% — игровой баланс
             self.unemployment = min(40, self.unemployment + effective / 20)
-            # Инфляция растёт чуть медленнее безработицы (/ 25)
             self.inflation = min(50, self.inflation + effective / 25)
-
-            # Урон влияет на резервы (чем больше урон, тем больше тратим резервов)
             if self.foreign_reserves > 0:
-                reserve_loss = effective * 0.5  # 50% урона идёт из резервов
-                self.foreign_reserves = max(0, self.foreign_reserves - reserve_loss)
+                self.foreign_reserves = max(0, self.foreign_reserves - effective * 0.5)
 
     def recover(self, amount: int):
-        # min(initial_health, ...) — страна не восстанавливается ВЫШЕ начального значения
+        # Восстанавливает здоровье и показатели, не превышая начальные значения.
         self.economic_health = min(self.initial_health, self.economic_health + amount)
-        # Не опускаем ниже начальных значений — нельзя «вылечить» страну до нуля
-        # max(initial_unemployment, ...) — безработица не падает ниже исторического минимума
         self.unemployment = max(self.initial_unemployment, self.unemployment - amount / 30)
         self.inflation = max(self.initial_inflation, self.inflation - amount / 40)
-
-        # Восстановление влияет на резервы (чем выше ИЧР, тем быстрее восстанавливаются)
         if self.human_development_index > 0.8:
-            # min(..., 5000) — ограничиваем максимум резервов 5 трлн $ (реалистичный потолок)
             self.foreign_reserves = min(self.foreign_reserves + amount * 0.3, 5000)
 
     def is_collapsed(self) -> bool:
-        # Порог коллапса — 20%: ниже этой черты страна начинает деградировать сама по себе (в daily_update)
+        # Возвращает True если здоровье ниже 20% — страна начинает деградировать сама по себе.
         return self.economic_health <= 20
     
     def get_reserve_protection(self) -> float:
@@ -116,6 +98,7 @@ class Country:
             return 1.0
 
 class Attack:
+    # Один вид атаки со стоимостью, базовым уроном, риском раскрытия и множителями для разных условий цели.
     def __init__(self, data: dict):
         self.name = data['name']
         self.base_cost = data['base_cost']
@@ -126,6 +109,7 @@ class Attack:
         self.multipliers = data.get('multipliers', {})
 
 class GlobalEconomyGame:
+    # Центральный класс игры: страны, атаки, механика кризиса и сохранение прогресса.
     # Насколько присутствие в альянсе повышает риск раскрытия при атаке
     ALLIANCE_RISK = {
         'НАТО': 1.3,
@@ -137,28 +121,27 @@ class GlobalEconomyGame:
         'ШОС': 1.1,
     }
 
-    # Alliance damage reduction per attack type
-    # Models real-world collective defense / economic solidarity mechanisms
+    # Смягчение урона по типу атаки в зависимости от членства в альянсе
     ALLIANCE_DEFENSE = {
         'G7': {
-            'currency_crisis': 0.70,  # IMF emergency loans, G7 currency coordination
-            'debt_spiral': 0.72,       # G7 can rescue members via bailout packages
+            'currency_crisis': 0.70,  # экстренные кредиты МВФ и координация валют
+            'debt_spiral': 0.72,       # члены G7 спасают друг друга пакетами помощи
         },
         'ЕС': {
-            'energy_embargo': 0.62,    # EU energy solidarity regulation, joint gas reserves
-            'trade_blockade': 0.80,    # EU single market provides alternative channels
+            'energy_embargo': 0.62,    # регламент солидарности ЕС и совместные газовые резервы
+            'trade_blockade': 0.80,    # единый рынок ЕС даёт альтернативные каналы торговли
         },
         'БРИКС': {
-            'trade_blockade': 0.85,    # BRICS alternative trade routes and markets
+            'trade_blockade': 0.85,    # альтернативные торговые маршруты БРИКС
         },
         'Five Eyes': {
-            'cyber_attack': 0.38,      # Joint cybersecurity intelligence sharing
+            'cyber_attack': 0.38,      # совместный разведывательный обмен в сфере кибербезопасности
         },
         'НАТО': {
-            'social_unrest': 0.82,     # Democratic institutional resilience
+            'social_unrest': 0.82,     # устойчивость демократических институтов
         },
         'ШОС': {
-            'social_unrest': 0.90,     # Political stability mechanisms
+            'social_unrest': 0.90,     # механизмы политической стабилизации
         },
     }
     
@@ -176,55 +159,43 @@ class GlobalEconomyGame:
     }
 
     def __init__(self, json_file: str):
-        # Открываем balance.json — там все страны, атаки и глобальные параметры
-        # encoding='utf-8' — файл содержит кириллицу, без этого Python может ошибиться
+        # Загружает данные из balance.json и инициализирует новую игру.
         with open(json_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)  # json.load читает файл и превращает JSON в словарь Python
+            data = json.load(f)
 
-        # Создаём словарь стран: ключ — название страны, значение — объект Country
-        # Dict[str, Country] — подсказка типа: ключи строки, значения — объекты Country
         self.countries: Dict[str, Country] = {}
         for cdata in data['countries']:
             c = Country(cdata)
-            self.countries[c.name] = c  # добавляем в словарь; доступ: self.countries["Германия"]
+            self.countries[c.name] = c
 
-        # List comprehension: создаём список объектов Attack из списка словарей в JSON
         self.attacks: List[Attack] = [Attack(a) for a in data['attacks']]
-        self.global_params = data['global_params']  # recovery_rate, contagion_factor и др.
-        # data.get(..., {}) — безопасное чтение: если ключа нет, вернёт пустой dict (а не ошибку)
-        self.economic_lessons = data.get('economic_lessons', {})
-
-        self.ip = 1000           # стартовый баланс очков влияния (IP)
-        self.reveal = 0          # 0–100: насколько операция "засвечена"; 100 = game over
-        self.day = 0             # счётчик игровых дней
-        self.game_over = False   # флаг окончания игры
-        self.win = False         # True = победа (глобальное здоровье упало ниже порога)
-        self.last_lesson = None  # последний образовательный урок после атаки
+        self.global_params = data['global_params']
+        self.ip = 1000
+        self.reveal = 0
+        self.day = 0
+        self.game_over = False
+        self.win = False
         self.connections: List[EconomicConnection] = []
-        self._build_connection_graph()  # строим граф связей между странами по данным из JSON
-        self.discovered_laws: set = set()   # set — множество (без дублей); обнаруженные экономические законы
-        self._quiz_answer: str = ""         # правильный ответ на текущий вопрос квиза (хранится на сервере!)
-        self._quiz_explanation: str = ""    # объяснение правильного ответа
-        self._quiz_reward: int = 0          # награда IP за правильный ответ
-        self.quiz_today_count: int = 0   # сколько раз уже отвечали сегодня
-        self.quiz_reset_day: int = 0     # день, когда был последний сброс лимита квиза
-        self.asked_quiz_ids: list = []   # вопросы, уже заданные в этой сессии (чтобы не повторяться)
-        self.consecutive_failures: int = 0  # сколько атак подряд провалилось (влияет на бонус шанса)
+        self._build_connection_graph()
+        self._quiz_answer: str = ""
+        self._quiz_explanation: str = ""
+        self._quiz_reward: int = 0
+        self.quiz_today_count: int = 0
+        self.quiz_reset_day: int = 0
+        self.asked_quiz_ids: list = []
+        self.consecutive_failures: int = 0
 
     def _build_connection_graph(self):
-        """Строит граф экономических связей между странами"""
+        # Строит граф торговых, долговых и энергетических связей между странами.
         for country in self.countries.values():
-            # Торговые связи
             for partner, share in country.trade_partners.items():
                 if partner in self.countries:
                     self.connections.append(EconomicConnection(
                         country.name, partner, 'trade', share, {}
                     ))
-            
-            # Долговые связи
+
             for creditor, amount in country.external_debt_holders.items():
                 if creditor in self.countries:
-                    # Нормализуем сумму (делим на 1000 для получения доли)
                     strength = min(amount / 1000, 1.0)
                     self.connections.append(EconomicConnection(
                         country.name, creditor, 'debt', strength, {'amount': amount}
@@ -466,7 +437,7 @@ class GlobalEconomyGame:
             if not curr_country:
                 continue
             
-            # 1. Распространение через альянсы (30% урона союзникам)
+            # союзники по тому же альянсу получают 30 процентов от урона текущей страны
             for alliance in curr_country.alliances:
                 alliance_name = alliance if isinstance(alliance, str) else alliance.get('name', '')
                 for other_name, other_country in self.countries.items():
@@ -485,7 +456,7 @@ class GlobalEconomyGame:
                             })
                             queue.append((other_name, alliance_transfer, factor * 0.3))
             
-            # 2. Распространение через долговые связи
+            # кредиторы получают до 20% урона в зависимости от суммы долга
             for debtor_name, debt_amount in curr_country.external_debt_holders.items():
                 if debtor_name in self.countries and debtor_name not in visited:
                     strength = min(debt_amount / 1000, 1.0)
@@ -501,7 +472,7 @@ class GlobalEconomyGame:
                         })
                         queue.append((debtor_name, debt_transfer, factor * 0.3))
             
-            # 3. Распространение через торговые, долговые и энергетические связи
+            # связи из графа — каждая передаёт разную долю урона в зависимости от типа и силы
             relevant_connections = [
                 c for c in self.connections 
                 if c.from_country == curr_name and c.to_country not in visited
@@ -509,16 +480,20 @@ class GlobalEconomyGame:
             
             for conn in relevant_connections:
                 if conn.connection_type == 'trade':
+                    # торговый партнёр получает силу_связи умноженную на коэффициент заражения из balance.json
                     transfer = int(damage * conn.strength * self.global_params['contagion_factor'] * factor)
                 elif conn.connection_type == 'debt':
+                    # кредитор получает 50 процентов урона; если его долг выше 90 процентов ВВП удар вырастает в полтора раза
                     transfer = int(damage * conn.strength * 0.5 * factor)
                     if transfer > 5 and conn.to_country in self.countries:
                         creditor = self.countries[conn.to_country]
                         if creditor.debt > creditor.gdp * 0.9:
                             transfer = int(transfer * 1.5)
                 elif conn.connection_type == 'energy':
+                    # энергетически зависимая страна получает 60 процентов урона умноженных на долю зависимости
                     transfer = int(damage * conn.strength * 0.6 * factor)
                 else:
+                    # прочие типы связей передают 20 процентов урона
                     transfer = int(damage * conn.strength * 0.2 * factor)
                 
                 if transfer > 0 and conn.to_country in self.countries:
@@ -546,7 +521,6 @@ class GlobalEconomyGame:
         target = self.countries[target_name]
         cost = int(attack.base_cost * target.weight)
 
-        # Считаем реальную стоимость с учётом раскрытия СРАЗУ — до броска кубика
         reveal_cost_mult = 1.0
         if self.reveal >= 70:
             reveal_cost_mult = 1.30
@@ -557,8 +531,7 @@ class GlobalEconomyGame:
         if self.ip < effective_cost:
             return False, f"Недостаточно очков влияния (нужно {effective_cost})", {}
 
-        # После 2 провалов подряд шанс повышается до 80%
-        # 3 провала подряд — следующая атака гарантированно успешна
+        # После 2 провалов подряд шанс 80%, после 3 — гарантированный успех
         if self.consecutive_failures >= 3:
             base_chance = 100
         elif self.consecutive_failures >= 2:
@@ -572,26 +545,19 @@ class GlobalEconomyGame:
             multiplier = 0.3
             explanation = "Операция провалена — цель устояла."
 
-        # При успехе урон масштабируется на multiplier (может быть >1 или <1 в зависимости от уязвимости цели)
-        # При провале — фиксированные 30% базового урона (атака ударила вхолостую)
         damage = int(attack.base_damage * multiplier) if success else int(attack.base_damage * 0.3)
-        target.take_damage(damage)  # применяем урон к стране-цели
-        self.ip -= effective_cost   # списываем IP с баланса игрока
+        target.take_damage(damage)
+        self.ip -= effective_cost
 
-        # Словарь с деталями атаки — он вернётся на фронтенд для показа модалки-объяснения
         attack_details = {
-            'explanation': explanation,         # почему атака сработала/не сработала
-            'lesson': lesson,                   # образовательный принцип из lessons.py
-            'multiplier': round(multiplier, 2), # round(..., 2) — 2 знака после запятой
+            'explanation': explanation,
+            'lesson': lesson,
+            'multiplier': round(multiplier, 2),
             'damage': damage,
-            'affected_countries': []            # список стран, куда докатится волна кризиса
+            'affected_countries': []
         }
 
-        # Эффективная атака (mult ≥ 1.5): +3  — чистый удар, мало следов
-        # Нормальная атака  (mult 1–1.5):  +6
-        # Неэффективная     (mult < 1):    +11 — много шума, мало результата
-        # Провал:                          +15 — спалились
-        # Защищённая цель (альянс):        +3  — сложная цель, больше следов
+        # Раскрытие зависит от эффективности: точный удар оставляет меньше следов чем провал
         if success:
             reveal_delta = 3 if multiplier >= 1.5 else 6 if multiplier >= 1.0 else 11
         else:
@@ -603,21 +569,18 @@ class GlobalEconomyGame:
         self.reveal = min(100, self.reveal + reveal_delta)
 
         if success:
-            self.consecutive_failures = 0  # сбрасываем счётчик провалов
+            self.consecutive_failures = 0
             bonus = int(effective_cost * 0.30)
             self.ip += bonus
             msg = f"{attack.name} → {target_name}: -{damage} | +{bonus} IP | давление +{reveal_delta}"
             affected = self._spread_damage_with_tracking(target_name, damage)
             attack_details['affected_countries'] = affected
-            if lesson:
-                self.last_lesson = lesson
         else:
-            self.consecutive_failures += 1  # считаем провалы подряд
+            self.consecutive_failures += 1
             penalty = int(effective_cost * 0.1)
             self.ip = max(0, self.ip - penalty)
             msg = f"{attack.name} → {target_name}: провал | -{penalty} IP | давление +{reveal_delta}"
 
-        # Добавляем в details информацию о давлении
         attack_details['reveal_delta'] = reveal_delta
         attack_details['reveal_now'] = self.reveal
 
@@ -625,44 +588,15 @@ class GlobalEconomyGame:
             self.game_over = True
             msg += " | Операция раскрыта — игра окончена"
 
-        # Проверяем условие победы: среднее здоровье всех стран ниже порога (обычно 30%)
-        # sum(генератор) / len — среднее арифметическое
         avg_health = sum(c.economic_health for c in self.countries.values()) / len(self.countries)
         if avg_health <= self.global_params['world_health_threshold']:
             self.game_over = True
-            self.win = True  # игрок победил — глобальный коллапс достигнут
+            self.win = True
 
-        # Возвращаем тройку значений; вызывающий код делает: success, msg, details = game.apply_attack(...)
         return success, msg, attack_details
 
-    def _check_economic_laws(self, attack: Attack, target: Country, damage: int) -> Optional[str]:
-        """Проверяет, не проявился ли какой-то экономический закон, и возвращает урок"""
-        lessons = []
-        
-        # Эффект домино
-        if damage > 10:
-            affected_partners = [c for c in self.countries.values() 
-                               if c.name != target.name and c.economic_health < target.economic_health]
-            if len(affected_partners) >= 2:
-                lessons.append("ЭФФЕКТ ДОМИНО: Кризис распространился на торговых партнёров!")
-        
-        # Долговая ловушка
-        if target.debt > target.gdp * 0.9 and attack.attack_type in ['финансовая', 'санкции']:
-            lessons.append("ДОЛГОВАЯ ЛОВУШКА: Высокий долг усугубил кризис!")
-        
-        # Энергетическая уязвимость
-        if target.energy_import > 0.4 and attack.attack_type == 'энергетическая':
-            lessons.append("ЭНЕРГЕТИЧЕСКАЯ УЯЗВИМОСТЬ: Зависимость от импорта энергии усилила урон!")
-        
-        # Бегство капитала
-        if target.foreign_reserves < 200 and attack.attack_type in ['финансовая', 'санкции']:
-            lessons.append("БЕГСТВО КАПИТАЛА: Низкие резервы не смогли защитить экономику!")
-        
-        if lessons:
-            return " ".join(lessons)
-        return None
-
     def daily_update(self):
+        # Продвигает игру на один день: списывает IP, снижает давление, обновляет здоровье стран.
         if self.game_over:
             return
         self.day += 1
@@ -677,21 +611,20 @@ class GlobalEconomyGame:
         for country in self.countries.values():
             h = country.economic_health
             if h > 60:
-                # Зона 60–100: активное восстановление — сложно удержать под ударом
-                regen = self.global_params['recovery_rate_high']  # = 3
-                bloc_mult = self._get_trade_bloc_multiplier(country)
-                regen = int(regen * bloc_mult)
+                # Активное восстановление — сложно удержать под ударом
+                regen = self.global_params['recovery_rate_high']
+                regen = int(regen * self._get_trade_bloc_multiplier(country))
                 regen = int(regen * country.get_hdi_recovery_bonus())
                 country.recover(max(1, regen))
             elif h > 40:
-                # Зона 40–60: медленное восстановление — "тянут из болота"
+                # Медленное восстановление
                 regen = self.global_params.get('recovery_rate_medium', 1)
                 country.recover(regen)
             elif h > 20:
-                # Зона 20–40: стабильный упадок
+                # Стабильный упадок
                 country.take_damage(1)
             else:
-                # Ниже 20%: каскадный коллапс
+                # Каскадный коллапс ниже 20%
                 country.take_damage(3)
 
         if self.reveal >= 100:
@@ -708,7 +641,7 @@ class GlobalEconomyGame:
         return 'critical'
 
     def get_state(self) -> dict:
-        """Собирает полное состояние игры в словарь для отправки на фронтенд через JSON."""
+        # Собирает текущее состояние игры в словарь для отправки на фронтенд.
         avg_health = sum(c.economic_health for c in self.countries.values()) / len(self.countries)
         return {
             'ip': self.ip,
@@ -718,7 +651,6 @@ class GlobalEconomyGame:
             'day': self.day,
             'game_over': self.game_over,
             'win': self.win,
-            'last_lesson': self.last_lesson,
             'global_health': int(avg_health),
             'countries': [
                 {
@@ -736,13 +668,9 @@ class GlobalEconomyGame:
                     'energy_export': c.energy_export,
                     'trade_partners': c.trade_partners,
                     'alliances': c.alliances,
-                    # НОВЫЕ ПОКАЗАТЕЛИ
                     'foreign_reserves': round(c.foreign_reserves, 1),
                     'human_development_index': c.human_development_index,
                     'corruption_perception_index': c.corruption_perception_index,
-                    'central_bank_rate': c.central_bank_rate,
-                    'manufacturing_value_added_pct': c.manufacturing_value_added_pct,
-                    'current_account_balance_pct': round(c.current_account_balance_pct, 1),
                     'external_debt_holders': c.external_debt_holders,
                     'energy_dependencies': c.energy_dependencies,
                     'trade_blocs': c.trade_blocs,
@@ -759,12 +687,10 @@ class GlobalEconomyGame:
                 }
                 for a in self.attacks
             ],
-            'economic_lessons': self.economic_lessons
         }
 
     def to_dict(self):
-        """Сериализует всё состояние игры в словарь для сохранения в SQLite.
-        from_dict() — обратная операция: восстанавливает объект из этого словаря."""
+        # Сериализует состояние игры в словарь для сохранения в базе данных.
         return {
             'ip': self.ip,
             'reveal': self.reveal,
@@ -794,17 +720,12 @@ class GlobalEconomyGame:
                 'initial_health': c.initial_health,
                 'initial_inflation': c.initial_inflation,
                 'initial_unemployment': c.initial_unemployment,
-                # НОВЫЕ ПОКАЗАТЕЛИ
                 'foreign_reserves': c.foreign_reserves,
                 'human_development_index': c.human_development_index,
                 'corruption_perception_index': c.corruption_perception_index,
-                'central_bank_rate': c.central_bank_rate,
-                'manufacturing_value_added_pct': c.manufacturing_value_added_pct,
-                'current_account_balance_pct': c.current_account_balance_pct,
                 'external_debt_holders': c.external_debt_holders,
                 'energy_dependencies': c.energy_dependencies,
                 'trade_blocs': c.trade_blocs,
-                'sanctions_experience': c.sanctions_experience,
             } for c in self.countries.values()},
             'attacks': [a.__dict__ for a in self.attacks]
         }
@@ -813,52 +734,47 @@ class GlobalEconomyGame:
     QUIZ_DAILY_LIMIT = 3
 
     def get_quiz_question(self) -> dict:
-        """Выбирает вопрос из пула. Возвращает ошибку если дневной лимит исчерпан."""
+        # Выбирает случайный незаданный вопрос из пула. Возвращает ошибку если лимит исчерпан.
         if self.quiz_today_count >= self.QUIZ_DAILY_LIMIT:
             days_left = (self.quiz_reset_day + 4) - self.day
             return {'error': f'Лимит разведки исчерпан. Через {days_left} дн. откроется снова.'}
-        pool = self._build_quiz_pool()  # получаем все вопросы (статические + динамические)
-        # List comprehension с условием: берём только те вопросы, которых ещё не задавали
+        pool = self._build_quiz_pool()
         unasked = [q for q in pool if q['question'] not in self.asked_quiz_ids]
         if len(unasked) < 2:
-            # Все вопросы пройдены — сбрасываем историю, чтобы цикл повторился
             self.asked_quiz_ids = []
             unasked = pool
-        q = random.choice(unasked)                  # случайный вопрос из незаданных
-        self.asked_quiz_ids.append(q['question'])   # запоминаем, что уже задавали этот вопрос
-        # Сохраняем правильный ответ на сервере — клиент не знает его до проверки
+        q = random.choice(unasked)
+        self.asked_quiz_ids.append(q['question'])
+        # Правильный ответ хранится на сервере — клиент его не видит до проверки
         self._quiz_answer = q['answer']
         self._quiz_explanation = q['explanation']
         self._quiz_reward = q['reward']
-        # Клиенту отдаём вопрос и варианты, но НЕ правильный ответ
         return {
             'question': q['question'],
             'options': q['options'],
-            'hint': q.get('hint', ''),  # q.get — безопасное чтение: hint может отсутствовать
+            'hint': q.get('hint', ''),
             'reward': q['reward'],
             'remaining': self.QUIZ_DAILY_LIMIT - self.quiz_today_count,
         }
 
     def submit_quiz_answer(self, answer: str) -> dict:
+        # Проверяет ответ, начисляет IP и снижает давление при правильном ответе.
         if not self._quiz_answer:
             return {'error': 'Нет активного вопроса'}
-        # .strip() убирает пробелы по краям — защита от случайных пробелов в ответе
         correct = answer.strip() == self._quiz_answer.strip()
         explanation = self._quiz_explanation
-        # Условное выражение: если правильно — начисляем награду, иначе 0
         reward = self._quiz_reward if correct else 0
         reveal_bonus = 0
         if correct:
             self.ip += reward
-            # Правильный ответ снижает давление — разведка помогает прикрыть следы
-            reveal_bonus = -10  # отрицательное значение — раскрытие УМЕНЬШАЕТСЯ на 10 пунктов
-            self.reveal = max(0, self.reveal + reveal_bonus)  # не уходим ниже 0
-        self.quiz_today_count += 1  # увеличиваем счётчик использованных попыток (лимит 3 за период)
-        self._quiz_answer = ""  # сбрасываем ответ — нельзя отвечать на один вопрос дважды
+            reveal_bonus = -10
+            self.reveal = max(0, self.reveal + reveal_bonus)
+        self.quiz_today_count += 1
+        self._quiz_answer = ""
         return {
             'correct': correct,
             'ip_gained': reward,
-            'reveal_change': reveal_bonus,  # -10 или 0 — фронтенд покажет это игроку
+            'reveal_change': reveal_bonus,
             'explanation': explanation,
             'remaining': max(0, self.QUIZ_DAILY_LIMIT - self.quiz_today_count),
         }
@@ -866,7 +782,7 @@ class GlobalEconomyGame:
     def _build_quiz_pool(self) -> list:
         pool = []
 
-        # Dynamic: highest debt
+        # Динамический вопрос: наибольший долг относительно ВВП
         by_debt = sorted(self.countries.values(), key=lambda c: c.debt / c.gdp, reverse=True)
         others = [c.name for c in by_debt[3:]]
         opts = [by_debt[0].name] + random.sample(others, min(3, len(others)))
@@ -881,7 +797,7 @@ class GlobalEconomyGame:
                            "Это как ипотека больше годового дохода — каждый новый кредит стоит дороже."),
         })
 
-        # Dynamic: most energy-dependent importer
+        # Динамический вопрос: наибольшая зависимость от импорта энергии
         by_energy = sorted(self.countries.values(), key=lambda c: c.energy_import, reverse=True)
         if by_energy[0].energy_import > 0.3:
             others_e = [c.name for c in by_energy[3:]]
@@ -897,7 +813,7 @@ class GlobalEconomyGame:
                                "Если поставки перекрыть, останавливаются заводы и растут цены на всё."),
             })
 
-        # Dynamic: weakest country
+        # Динамический вопрос: страна в наихудшем экономическом состоянии
         weakest = min(self.countries.values(), key=lambda c: c.economic_health)
         if weakest.economic_health < 78:
             others_w = [c.name for c in sorted(self.countries.values(), key=lambda c: c.economic_health, reverse=True)[:5]]
@@ -1288,10 +1204,7 @@ class GlobalEconomyGame:
 
     @classmethod
     def from_dict(cls, data):
-        """Восстанавливает объект GlobalEconomyGame из словаря (загруженного из SQLite).
-        @classmethod означает, что метод принадлежит классу, а не экземпляру: Game.from_dict(data)
-        cls — это сам класс GlobalEconomyGame (аналог self, но для класса)."""
-        # cls.__new__(cls) создаёт пустой объект без вызова __init__ — мы заполним его сами
+        # Восстанавливает объект игры из словаря, сохранённого в базе данных.
         instance = cls.__new__(cls)
         instance.ip = data['ip']
         instance.reveal = data.get('reveal', 0)
@@ -1303,10 +1216,7 @@ class GlobalEconomyGame:
         instance.game_over = data['game_over']
         instance.win = data['win']
         instance.global_params = data['global_params']
-        instance.economic_lessons = data.get('economic_lessons', {})
-        instance.last_lesson = data.get('last_lesson', None)
         instance.connections = []
-        instance.discovered_laws = set()
         instance._quiz_answer = ""
         instance._quiz_explanation = ""
         instance._quiz_reward = 0
@@ -1328,13 +1238,9 @@ class GlobalEconomyGame:
                 'export_oriented': cdata.get('export_oriented', False),
                 'energy_import': cdata.get('energy_import', 0),
                 'energy_export': cdata.get('energy_export', 0),
-                # НОВЫЕ ПОКАЗАТЕЛИ
                 'foreign_reserves_usd_billion': cdata.get('foreign_reserves', 100),
                 'human_development_index': cdata.get('human_development_index', 0.7),
                 'corruption_perception_index': cdata.get('corruption_perception_index', 50),
-                'central_bank_rate': cdata.get('central_bank_rate', 5.0),
-                'manufacturing_value_added_pct': cdata.get('manufacturing_value_added_pct', 15.0),
-                'current_account_balance_pct': cdata.get('current_account_balance_pct', 0.0),
                 'external_debt_holders': cdata.get('external_debt_holders', {}),
                 'energy_dependencies': cdata.get('energy_dependencies', {}),
                 'trade_blocs': cdata.get('trade_blocs', []),
@@ -1343,7 +1249,6 @@ class GlobalEconomyGame:
             # Восстанавливаем начальные значения; если сохранение старое — берём текущие
             c.initial_inflation = cdata.get('initial_inflation', cdata['inflation'])
             c.initial_unemployment = cdata.get('initial_unemployment', cdata['unemployment'])
-            c.sanctions_experience = cdata.get('sanctions_experience', False)
             instance.countries[name] = c
 
         instance.attacks = [Attack(a) for a in data['attacks']]

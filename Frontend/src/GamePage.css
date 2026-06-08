@@ -41,26 +41,6 @@
     gap: 12px;
 }
 
-.globe-icon {
-    font-size: 28px;
-    filter: drop-shadow(0 0 8px #00d4ff);
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-
-    0%,
-    100% {
-        filter: drop-shadow(0 0 2px #00d4ff);
-        transform: scale(1);
-    }
-
-    50% {
-        filter: drop-shadow(0 0 12px #00d4ff);
-        transform: scale(1.05);
-    }
-}
-
 .logo-area h1 {
     font-size: 18px;
     font-weight: 600;
@@ -177,8 +157,8 @@
 .game-layout {
     display: flex;
     gap: 20px;
-    padding: 0 20px 20px 20px;
-    height: calc(100vh - 200px);
+    padding: 0 0 20px 0;
+    height: calc(100vh - 250px);
 }
 
 .map-container {
@@ -288,38 +268,6 @@
     animation: none;
 }
 
-.log-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-height: 200px;
-    overflow-y: auto;
-    background: rgba(15, 20, 30, 0.5);
-    border-radius: 20px;
-    padding: 12px;
-    border: 1px solid rgba(0, 212, 255, 0.1);
-}
-
-.log-title {
-    font-size: 10px;
-    color: #88aacc;
-    margin-bottom: 6px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.log-entry {
-    font-size: 11px;
-    color: #aaccff;
-    padding: 6px 10px;
-    background: rgba(0, 212, 255, 0.04);
-    border-radius: 12px;
-    border-left: 2px solid #00d4ff;
-    font-family: monospace;
-}
-
 /* Attacks Tab */
 .attacks-tab {
     padding: 20px;
@@ -396,46 +344,6 @@
     color: #66ccff;
 }
 
-.attack-tooltip {
-    display: none;
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #0a0c12;
-    border: 1px solid #00d4ff;
-    border-radius: 12px;
-    padding: 8px 12px;
-    width: 240px;
-    font-size: 11px;
-    color: #ccdeee;
-    z-index: 10;
-    margin-bottom: 8px;
-    pointer-events: none;
-    white-space: normal;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-
-.attack-card:hover .attack-tooltip {
-    display: block;
-}
-
-.attack-effectiveness {
-    margin-top: 10px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-
-.eff-note {
-    font-size: 10px;
-    background: rgba(255, 136, 68, 0.2);
-    padding: 2px 6px;
-    border-radius: 12px;
-    color: #ffaa66;
-}
-
 .selected-attack-info {
     margin-top: 20px;
     padding: 12px;
@@ -505,83 +413,6 @@
     font-size: 12px;
     color: #88aacc;
     text-align: center;
-}
-
-/* Country Tooltip on Analytics Hover */
-.country-tooltip {
-    position: fixed;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 320px;
-    background: #0f141c;
-    border: 1px solid #00d4ff;
-    border-radius: 20px;
-    padding: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    z-index: 200;
-    backdrop-filter: blur(8px);
-    animation: slideIn 0.2s ease;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-50%) translateX(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(-50%) translateX(0);
-    }
-}
-
-.country-tooltip h4 {
-    color: #00d4ff;
-    margin-bottom: 12px;
-    font-size: 16px;
-    border-bottom: 1px solid rgba(0, 212, 255, 0.3);
-    padding-bottom: 6px;
-}
-
-.tooltip-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 6px;
-    font-size: 11px;
-    color: #cceeff;
-    margin-bottom: 10px;
-}
-
-.tooltip-alliances,
-.tooltip-partners,
-.tooltip-vulnerabilities {
-    font-size: 11px;
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px solid rgba(0, 212, 255, 0.2);
-}
-
-.tooltip-alliances {
-    color: #ffaa66;
-}
-
-.tooltip-partners {
-    color: #88ccff;
-}
-
-.tooltip-vulnerabilities strong {
-    color: #ff6666;
-}
-
-.tooltip-vulnerabilities ul {
-    margin: 4px 0 0 16px;
-    padding: 0;
-}
-
-.tooltip-vulnerabilities li {
-    color: #ffaa88;
-    margin: 4px 0;
 }
 
 /* Toast Messages */
@@ -877,240 +708,12 @@
     background: #0a0c12;
 }
 
-/* Connections Tab */
-.connections-tab {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-    background: linear-gradient(135deg, #0a1225 0%, #1a0a1a 100%);
-    border-radius: 24px;
-    position: relative;
-}
-
-.connections-tab h3 {
-    color: #00d4ff;
-    margin-bottom: 16px;
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.connections-legend {
-    display: flex;
-    gap: 24px;
-    margin-bottom: 16px;
-    justify-content: center;
-}
-
 .legend-item {
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 13px;
     color: #ccdeee;
-}
-
-.legend-item .line {
-    width: 30px;
-    height: 3px;
-    border-radius: 2px;
-}
-
-.legend-item .line.trade {
-    background: #4CAF50;
-}
-
-.legend-item .line.debt {
-    background: #FF5722;
-    background-image: linear-gradient(90deg, #FF5722 50%, transparent 50%);
-    background-size: 8px 3px;
-}
-
-.legend-item .line.energy {
-    background: #FFC107;
-}
-
-.connections-hint {
-    text-align: center;
-    color: #88aacc;
-    font-size: 13px;
-    margin-bottom: 16px;
-}
-
-.map-container.with-connections {
-    position: relative;
-    height: 500px;
-    margin-bottom: 20px;
-}
-
-.connections-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 10;
-}
-
-.selected-country-connections {
-    background: rgba(15, 20, 30, 0.7);
-    border-radius: 20px;
-    padding: 20px;
-    border: 1px solid rgba(0, 212, 255, 0.2);
-}
-
-.selected-country-connections h4 {
-    color: #00d4ff;
-    margin-bottom: 16px;
-    font-size: 16px;
-}
-
-.connections-details {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-}
-
-.connection-section {
-    background: rgba(0, 212, 255, 0.05);
-    border-radius: 16px;
-    padding: 16px;
-    border: 1px solid rgba(0, 212, 255, 0.1);
-}
-
-.connection-section h5 {
-    color: #00d4ff;
-    font-size: 13px;
-    margin-bottom: 12px;
-    font-weight: 600;
-}
-
-.connection-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 0;
-    font-size: 12px;
-    color: #ccdeee;
-    border-bottom: 1px solid rgba(0, 212, 255, 0.1);
-}
-
-.connection-item:last-child {
-    border-bottom: none;
-}
-
-.connection-value {
-    color: #ffaa66;
-    font-weight: 600;
-    font-size: 11px;
-}
-
-/* Lesson Modal */
-.lesson-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(12px);
-    z-index: 2000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.lesson-modal {
-    background: linear-gradient(135deg, #0f141c, #1a0f1a);
-    border: 1px solid #00d4ff;
-    border-radius: 32px;
-    padding: 32px;
-    max-width: 550px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    position: relative;
-    box-shadow: 0 0 48px rgba(0, 212, 255, 0.2);
-    animation: slideUp 0.3s ease;
-}
-
-.lesson-modal h3 {
-    color: #00d4ff;
-    margin-bottom: 16px;
-    font-size: 18px;
-}
-
-.lesson-close {
-    position: absolute;
-    top: 16px;
-    right: 20px;
-    background: none;
-    border: none;
-    color: #00d4ff;
-    font-size: 24px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.lesson-close:hover {
-    color: #ff6666;
-    transform: scale(1.1);
-}
-
-.lesson-text {
-    color: #ccdeee;
-    font-size: 14px;
-    line-height: 1.6;
-    margin-bottom: 20px;
-    padding: 16px;
-    background: rgba(0, 212, 255, 0.05);
-    border-radius: 16px;
-    border-left: 3px solid #00d4ff;
-}
-
-.lesson-detail {
-    margin-bottom: 20px;
-    padding: 16px;
-    background: rgba(255, 170, 102, 0.05);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 170, 102, 0.2);
-}
-
-.lesson-detail h4 {
-    color: #ffaa66;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.lesson-detail p {
-    color: #ccdeee;
-    font-size: 12px;
-    line-height: 1.5;
-    margin-bottom: 6px;
-}
-
-.lesson-detail small {
-    color: #88aacc;
-}
-
-.lesson-button {
-    width: 100%;
-    background: linear-gradient(135deg, #e8a070, #d48050);
-    border: none;
-    padding: 14px;
-    border-radius: 60px;
-    color: white;
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    font-size: 16px;
-    cursor: pointer;
-    transition: 0.2s;
-    margin-top: 16px;
-}
-
-.lesson-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 16px rgba(232, 160, 112, 0.5);
 }
 
 /* Glossary Modal */
@@ -1206,275 +809,6 @@
     border-color: #00d4ff;
 }
 
-/* Radar Chart Styles */
-.radar-chart-container {
-    margin: 20px 0;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 16px;
-    padding: 16px;
-    border: 1px solid rgba(0, 212, 255, 0.1);
-}
-
-/* Bar Chart Styles */
-.bar-chart-container {
-    margin: 20px 0;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 16px;
-    padding: 16px;
-    border: 1px solid rgba(0, 212, 255, 0.1);
-}
-
-.chart-tooltip {
-    background: rgba(10, 12, 18, 0.95);
-    border: 1px solid #00d4ff;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 12px;
-    color: #ccdeee;
-}
-
-.chart-legend {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 12px;
-    font-size: 12px;
-    color: #ccdeee;
-}
-
-.legend-dot {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
-    margin-right: 6px;
-    vertical-align: middle;
-}
-
-.legend-dot.trade {
-    background: #2196F3;
-}
-
-.legend-dot.debt {
-    background: #F44336;
-}
-
-.legend-dot.energy {
-    background: #FFC107;
-}
-
-/* Indicator Bars */
-.indicator-bar {
-    margin: 12px 0;
-}
-
-.indicator-label {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-    font-size: 12px;
-    color: #ccdeee;
-}
-
-.indicator-value {
-    color: #00d4ff;
-    font-weight: 600;
-}
-
-.indicator-track {
-    height: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.indicator-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.5s ease;
-}
-
-/* Parameter format styles */
-.param-value {
-    color: #ccdeee;
-}
-
-.param-benchmark {
-    color: #66ccff;
-    font-size: 0.85em;
-    opacity: 0.7;
-}
-
-.param-divider {
-    color: #3a6a9a;
-    margin: 0 4px;
-}
-
-/* Vulnerabilities Tab */
-.vulnerabilities-tab {
-    padding: 20px;
-    max-height: calc(100vh - 200px);
-    overflow-y: auto;
-}
-
-.vuln-hint {
-    color: #aaa;
-    margin-bottom: 20px;
-    font-style: italic;
-}
-
-.vuln-section {
-    margin-bottom: 25px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
-    padding: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.vuln-section h4 {
-    font-size: 16px;
-    margin-bottom: 5px;
-    color: #ff9800;
-}
-
-.vuln-desc {
-    color: #888;
-    font-size: 13px;
-    margin-bottom: 10px;
-}
-
-.vuln-table {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.vuln-row {
-    display: flex;
-    align-items: center;
-    padding: 8px 12px;
-    border-radius: 4px;
-    gap: 15px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.vuln-row:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.vuln-row.critical {
-    background: rgba(244, 67, 54, 0.1);
-    border-left: 3px solid #f44336;
-}
-
-.vuln-row.high {
-    background: rgba(255, 152, 0, 0.1);
-    border-left: 3px solid #ff9800;
-}
-
-.vuln-row .country-name {
-    font-weight: 600;
-    min-width: 120px;
-}
-
-.vuln-row .vuln-value {
-    color: #aaa;
-    flex: 1;
-    font-size: 13px;
-}
-
-.vuln-row .vuln-level {
-    font-size: 12px;
-    min-width: 120px;
-    text-align: right;
-}
-
-/* TOP 5 */
-.top5 {
-    background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(244, 67, 54, 0.1));
-    border: 1px solid rgba(255, 152, 0, 0.3);
-}
-
-.top5-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.top5-item {
-    display: grid;
-    grid-template-columns: 30px 100px 1fr 150px;
-    gap: 10px;
-    align-items: center;
-    padding: 10px 15px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 6px;
-}
-
-.top5-item .rank {
-    font-size: 18px;
-    font-weight: 700;
-    color: #ff9800;
-    text-align: center;
-}
-
-.top5-item .country-name {
-    font-weight: 600;
-    font-size: 15px;
-}
-
-.top5-item .reason {
-    color: #aaa;
-    font-size: 12px;
-    line-height: 1.3;
-}
-
-.top5-item .recommend {
-    color: #4caf50;
-    font-size: 12px;
-    font-weight: 600;
-    text-align: right;
-}
-
-/* Strategy */
-.strategy {
-    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(33, 150, 243, 0.1));
-    border: 1px solid rgba(76, 175, 80, 0.3);
-}
-
-.strategy-list {
-    padding-left: 20px;
-    margin: 10px 0;
-}
-
-.strategy-list li {
-    margin-bottom: 10px;
-    line-height: 1.4;
-}
-
-.strategy-tip {
-    background: rgba(76, 175, 80, 0.1);
-    padding: 10px 15px;
-    border-radius: 6px;
-    color: #4caf50;
-    font-size: 13px;
-    margin-top: 15px;
-}
-
-@media (max-width: 768px) {
-    .top5-item {
-        grid-template-columns: 1fr;
-        gap: 5px;
-    }
-    .top5-item .rank {
-        display: none;
-    }
-    .top5-item .recommend {
-        text-align: left;
-    }
-}
-
 /* Responsive */
 @media (max-width: 768px) {
     .game-layout {
@@ -1490,86 +824,6 @@
         grid-template-columns: 1fr;
     }
 
-    .country-tooltip {
-        position: fixed;
-        bottom: 10px;
-        top: auto;
-        right: 10px;
-        left: 10px;
-        width: auto;
-        transform: none;
-        max-height: 50vh;
-        overflow-y: auto;
-    }
-
-    .connections-details {
-        grid-template-columns: 1fr;
-    }
-
-    .map-container.with-connections {
-        height: 350px;
-    }
-}
-
-/* ══════════════════════════════════════════════
-   MAP MODE TOGGLE + ALLIANCE LEGEND
-══════════════════════════════════════════════ */
-.map-mode-toggle {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 10px;
-}
-
-.map-mode-btn {
-    background: rgba(0, 212, 255, 0.07);
-    border: 1px solid rgba(0, 212, 255, 0.2);
-    border-radius: 20px;
-    padding: 6px 16px;
-    color: #88aacc;
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.map-mode-btn.active {
-    background: rgba(0, 212, 255, 0.18);
-    border-color: #00d4ff;
-    color: #00d4ff;
-    box-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
-}
-
-.map-mode-btn:hover:not(.active) {
-    background: rgba(0, 212, 255, 0.12);
-    color: #aad4ee;
-}
-
-.map-alliance-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 10px;
-    padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.map-alliance-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    color: #ccdeee;
-}
-
-.map-alliance-dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
 }
 
 /* ══════════════════════════════════════════════
@@ -1789,13 +1043,6 @@
     transition: background 0.2s;
 }
 
-.graph-hint {
-    font-size: 11px;
-    color: #88aacc;
-    margin-left: 6px;
-    opacity: 0.8;
-}
-
 /* Graph body: SVG + side panel */
 .graph-body {
     display: flex;
@@ -1962,17 +1209,6 @@
     background: rgba(255, 255, 255, 0.03);
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.edge-type-icon {
-    font-size: 12px;
-    flex-shrink: 0;
-}
-
-.edge-dir-arrow {
-    font-weight: 700;
-    font-size: 12px;
-    flex-shrink: 0;
 }
 
 .edge-partner {
@@ -2187,54 +1423,6 @@
     cursor: pointer;
 }
 
-.explanation-content {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.explanation-text {
-    font-size: 13px;
-    color: #ccdeee;
-    line-height: 1.6;
-    padding: 12px 14px;
-    background: rgba(0, 212, 255, 0.05);
-    border-radius: 12px;
-    border-left: 3px solid #00d4ff;
-}
-
-.explanation-lesson {
-    padding: 12px 14px;
-    background: rgba(255, 170, 102, 0.06);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 170, 102, 0.2);
-    font-size: 13px;
-    color: #ccdeee;
-    line-height: 1.5;
-}
-
-.explanation-lesson strong {
-    color: #ffaa66;
-    display: block;
-    margin-bottom: 6px;
-}
-
-.explanation-spread {
-    font-size: 12px;
-    color: #ccdeee;
-}
-
-.explanation-spread strong {
-    color: #ff8888;
-    display: block;
-    margin-bottom: 6px;
-}
-
-.explanation-spread ul {
-    padding-left: 16px;
-    line-height: 1.8;
-}
-
 .explanation-button {
     width: 100%;
     margin-top: 16px;
@@ -2300,15 +1488,6 @@
     color: #00d4ff;
     font-size: 22px;
     cursor: pointer;
-}
-
-.debrief-stats {
-    margin: 16px 0;
-    padding: 12px;
-    background: rgba(0, 212, 255, 0.06);
-    border-radius: 12px;
-    font-size: 13px;
-    color: #aaccdd;
 }
 
 .debrief-button {
@@ -2379,13 +1558,6 @@
     to { opacity: 1; transform: translateX(0); }
 }
 
-.crp-icon {
-    font-size: 12px;
-    flex-shrink: 0;
-    width: 16px;
-    text-align: center;
-}
-
 .crp-country {
     flex: 1;
     color: #ffcccc;
@@ -2404,13 +1576,6 @@
     font-size: 11px;
     min-width: 28px;
     text-align: right;
-}
-
-.crp-more {
-    font-size: 10px;
-    color: #666;
-    text-align: center;
-    padding-top: 2px;
 }
 
 /* ══════════════════════════════════════════════
@@ -2843,4 +2008,118 @@
     .graph-svg-wrap {
         min-height: 320px;
     }
+}
+
+/* Тулбар атаки над картой */
+.map-tab-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 20px;
+}
+
+.map-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(10, 20, 40, 0.9);
+  border: 1px solid rgba(0, 212, 255, 0.4);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.map-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.map-toolbar-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00d4ff;
+  white-space: nowrap;
+}
+
+.map-toolbar-select {
+  flex: 1;
+  background: #0d1b2e;
+  border: 1px solid rgba(0, 212, 255, 0.4);
+  border-radius: 8px;
+  color: #e0eeff;
+  font-size: 13px;
+  padding: 7px 10px;
+  cursor: pointer;
+  outline: none;
+}
+
+.map-toolbar-select:focus {
+  border-color: #00d4ff;
+}
+
+.map-toolbar-select option {
+  background: #0d1b2e;
+  color: #e0eeff;
+}
+
+.map-toolbar-attack-btn {
+  background: linear-gradient(135deg, #00a3cc, #007799);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.map-toolbar-attack-btn:disabled {
+  background: rgba(0, 100, 150, 0.3);
+  color: rgba(200, 220, 255, 0.4);
+  cursor: not-allowed;
+}
+
+.map-toolbar-attack-btn:not(:disabled):hover {
+  background: linear-gradient(135deg, #00b8e6, #0088aa);
+}
+
+/* Выбор атаки прямо на вкладке Карта */
+.map-attack-select-row {
+  margin: 0 0 8px;
+}
+
+.map-attack-select-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #00d4ff;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.map-attack-select {
+  width: 100%;
+  background: #0d1b2e;
+  border: 1px solid rgba(0, 212, 255, 0.5);
+  border-radius: 8px;
+  color: #e0eeff;
+  font-size: 13px;
+  padding: 9px 12px;
+  cursor: pointer;
+  outline: none;
+  display: block;
+}
+
+.map-attack-select:focus {
+  border-color: #00d4ff;
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
+}
+
+.map-attack-select option {
+  background: #0d1b2e;
+  color: #e0eeff;
 }

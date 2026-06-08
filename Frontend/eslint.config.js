@@ -24,6 +24,9 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // React Compiler v7 слишком строго запрещает setState внутри useEffect,
+      // хотя паттерн "вызов async-функции в useEffect" полностью валиден
+      'react-hooks/set-state-in-effect': 'off',
     },
   },
 ])

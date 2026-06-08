@@ -37,7 +37,6 @@ body {
 }
 
 .auth-card:hover {
-  transform: translateY(-5px);
   box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 212, 255, 0.15);
 }
 

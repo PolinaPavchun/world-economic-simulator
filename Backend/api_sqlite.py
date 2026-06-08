@@ -1,9 +1,12 @@
-from flask import Flask, request, jsonify
-from users_db_sqlite import add_user, check_user, nickname_exists, save_game_state, load_game_state
-import hashlib
-import os
-from flask_cors import CORS  # разрешает запросы с другого домена (фронтенд на Vercel, бэкенд на Render)
-from game_core import GlobalEconomyGame as Game
+# api_sqlite.py — Flask-сервер, точка входа для всех запросов с фронтенда.
+# Обрабатывает регистрацию, вход, атаки, ежедневные обновления и квиз.
+
+from flask import Flask, request, jsonify  # веб-фреймворк для создания API-маршрутов
+from users_db_sqlite import add_user, check_user, nickname_exists, save_game_state, load_game_state  # работа с базой
+import hashlib   # хеширование паролей
+import os        # чтение переменных окружения и путей к файлам
+from flask_cors import CORS  # разрешает запросы с фронтенда на другом домене
+from game_core import GlobalEconomyGame as Game  # основная логика игры
 
 app = Flask(__name__)
 CORS(app)
@@ -11,16 +14,16 @@ CORS(app)
 _BASE = os.path.dirname(os.path.abspath(__file__))
 BALANCE_FILE = os.path.join(_BASE, "balance.json")
 
-# игры хранятся в памяти, чтобы не читать базу при каждом запросе
-active_games = {}
+active_games = {}  # игры в памяти — не читаем базу при каждом запросе
 
 
 def hash_password(password):
-    # SHA-256 необратим — даже если утечёт база, пароли не восстановить
+    # Хеширует пароль через SHA-256 — необратимо, пароли в базе не хранятся в открытом виде.
     return hashlib.sha256(password.encode()).hexdigest()
 
 
 def get_or_create_game(nickname):
+    # Возвращает игру из памяти, иначе загружает из базы, иначе создаёт новую — в таком порядке.
     if nickname in active_games:
         return active_games[nickname]
     saved = load_game_state(nickname)
@@ -31,6 +34,7 @@ def get_or_create_game(nickname):
 
 @app.route("/register", methods=["POST"])
 def register():
+    # Создаёт нового пользователя и сразу заводит для него свежую игру с начальными параметрами.
     data = request.json
     nickname = data.get("nickname")
     password = data.get("password")
@@ -47,6 +51,7 @@ def register():
 
 @app.route("/login", methods=["POST"])
 def login():
+    # Проверяет пароль и подгружает игру в память, чтобы следующие запросы были быстрее.
     data = request.json
     nickname = data.get("nickname")
     password = data.get("password")
@@ -60,7 +65,7 @@ def login():
 
 @app.route("/game/state", methods=["GET"])
 def game_state():
-    # GET-параметры читаются из URL: /game/state?nickname=...
+    # Возвращает текущее состояние игры для указанного пользователя.
     nickname = request.args.get("nickname")
     if not nickname:
         return jsonify({"error": "nickname required"}), 400
@@ -70,6 +75,7 @@ def game_state():
 
 @app.route("/game/attack", methods=["POST"])
 def game_attack():
+    # Принимает атаку, применяет её к игре, сохраняет в базу и возвращает обновлённое состояние.
     data = request.json
     nickname = data.get("nickname")
     attack_name = data.get("attack_name")
@@ -84,7 +90,7 @@ def game_attack():
 
 @app.route("/game/daily", methods=["POST"])
 def game_daily():
-    # вызывается фронтендом каждые 10 секунд — один игровой день
+    # Продвигает игру на один день — вызывается фронтендом каждые 10 секунд.
     nickname = request.json.get("nickname")
     if not nickname:
         return jsonify({"error": "nickname required"}), 400
@@ -119,6 +125,7 @@ def answer_quiz():
 
 @app.route("/reset_game", methods=["POST"])
 def reset_game():
+    # Удаляет текущую игру из базы и создаёт новую с начальными параметрами из balance.json.
     data = request.json
     nickname = data.get("nickname")
     if not nickname:
