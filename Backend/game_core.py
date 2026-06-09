@@ -113,8 +113,8 @@ class Attack:
         base_max = max(nums, default=1.0)
         if self.attack_type == 'trade_blockade':
             # при высокой зависимости И малом числе партнёров множители перемножаются
-            base_max = (self.multipliers.get('high_dependency', 1.8)
-                        * self.multipliers.get('concentrated_partners', 1.5))
+            base_max = (self.multipliers.get('high_dependency', 1.5)
+                        * self.multipliers.get('concentrated_partners', 1.4))
         return base_max
 
 class GlobalEconomyGame:
