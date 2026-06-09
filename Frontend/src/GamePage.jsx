@@ -24,44 +24,44 @@ function computeAttackConditions(attack, country) {
   if (attack.name === "Валютная атака") {
     const debt = Math.round(country.debt / country.gdp * 100);
     const res = Math.round(country.foreign_reserves);
-    if (debt > 80 && res < 200) return { canUse: true, reason: `Долг ${debt}% + резервы $${res}млрд → ×2.2` };
-    if (debt > 80) return { canUse: true, reason: `Долг ${debt}% ВВП → ×1.5` };
-    if (res < 200) return { canUse: true, reason: `Резервы $${res}млрд → ×1.3` };
+    if (debt > 80 && res < 200) return { canUse: true, reason: `Долг ${debt}% + резервы $${res}млрд — двойная уязвимость` };
+    if (debt > 80) return { canUse: true, reason: `Долг ${debt}% ВВП — высокая долговая нагрузка` };
+    if (res < 200) return { canUse: true, reason: `Резервы $${res}млрд — слабая защита валюты` };
     return { canUse: false, reason: `Долг ${debt}%, резервы $${res}млрд — защита достаточна` };
   }
   if (attack.name === "Долговая спираль") {
     const debt = Math.round(country.debt / country.gdp * 100);
-    if (debt > 100) return { canUse: true, reason: `Долг ${debt}% — критическая спираль → ×2.1` };
-    if (debt > 80) return { canUse: true, reason: `Долг ${debt}% — давление на бюджет → ×1.4` };
+    if (debt > 100) return { canUse: true, reason: `Долг ${debt}% — критическая долговая спираль` };
+    if (debt > 80) return { canUse: true, reason: `Долг ${debt}% — давление на бюджет` };
     return { canUse: false, reason: `Долг ${debt}% — рынки считают долг устойчивым` };
   }
   if (attack.name === "Торговые санкции") {
     const dep = Math.round(Object.values(country.trade_partners || {}).reduce((a, b) => a + b, 0) * 100);
     const cnt = Object.keys(country.trade_partners || {}).length;
-    if (dep > 50 && cnt <= 3) return { canUse: true, reason: `${dep}% зависимость, ${cnt} партнёра → ×2.7` };
-    if (dep > 50) return { canUse: true, reason: `Зависимость ${dep}% → ×1.8` };
-    if (cnt <= 3) return { canUse: true, reason: `Только ${cnt} партнёра → ×1.5` };
+    if (dep > 50 && cnt <= 3) return { canUse: true, reason: `${dep}% зависимость, ${cnt} партнёра — нет диверсификации` };
+    if (dep > 50) return { canUse: true, reason: `Зависимость ${dep}% — высокая торговая концентрация` };
+    if (cnt <= 3) return { canUse: true, reason: `Только ${cnt} партнёра — уязвимый торговый профиль` };
     return { canUse: false, reason: `${dep}% зависимость, ${cnt} партнёров — диверсифицировано` };
   }
   if (attack.name === "Энергетический шантаж") {
     const imp = Math.round(country.energy_import * 100);
     const exp = Math.round(country.energy_export * 100);
     if (exp > 40) return { canUse: false, reason: `Экспортирует ${exp}% энергии — неэффективно` };
-    if (imp > 40) return { canUse: true, reason: `Импорт ${imp}% энергии → ×2.0` };
+    if (imp > 40) return { canUse: true, reason: `Импорт ${imp}% энергии — критическая зависимость` };
     return { canUse: false, reason: `Импорт ${imp}% — нет критической зависимости` };
   }
   if (attack.name === "Социальный взрыв") {
     const inf = country.inflation, unemp = country.unemployment, corr = country.corruption_perception_index;
     const hits = (inf > 8 ? 1 : 0) + (unemp > 10 ? 1 : 0) + (corr < 35 ? 1 : 0);
-    if (hits >= 3) return { canUse: true, reason: `Инфляция + безработица + коррупция → ×2.5` };
-    if (hits === 2) return { canUse: true, reason: `Два триггера → ×2.0` };
-    if (hits === 1) return { canUse: true, reason: `Один триггер → ×1.5–1.9` };
+    if (hits >= 3) return { canUse: true, reason: `Инфляция + безработица + коррупция — тройной триггер` };
+    if (hits === 2) return { canUse: true, reason: `Два социальных триггера активны` };
+    if (hits === 1) return { canUse: true, reason: `Один социальный триггер активен` };
     return { canUse: false, reason: `Инфляция ${inf}%, безработица ${unemp}% — стабильно` };
   }
   if (attack.name === "Кибератака") {
     const dig = country.digitalization;
-    if (dig > 75) return { canUse: true, reason: `Цифровизация ${dig}% — парадокс уязвимости → ×1.9` };
-    if (dig > 55) return { canUse: true, reason: `Цифровизация ${dig}% → ×1.0` };
+    if (dig > 75) return { canUse: true, reason: `Цифровизация ${dig}% — высокая IT-зависимость` };
+    if (dig > 55) return { canUse: true, reason: `Цифровизация ${dig}% — умеренная IT-зависимость` };
     return { canUse: false, reason: `Цифровизация ${dig}% — не зависит от IT` };
   }
   return { canUse: true, reason: "" };
@@ -153,9 +153,9 @@ const ECONOMIC_GLOSSARY = {
   "Инфляция": "Как быстро растут цены. Норма — 2–5%, выше 8% — уже проблема.",
   "Резервы": "Золото и валюта на счетах центробанка. Ниже $200 млрд — слабая защита от валютных атак.",
   "Торговая зависимость": "Какую долю экономики составляет торговля с другими странами.",
-  "Коррупция (ИКВ)": "Индекс восприятия коррупции от 0 (очень высокая) до 100 (очень низкая). Ниже 35 — коррупция усиливает урон от ЛЮБОЙ атаки на ×1.2–1.5. Коррумпированные чиновники не могут эффективно противостоять кризису.",
+  "Коррупция (ИКВ)": "Индекс восприятия коррупции от 0 (очень высокая) до 100 (очень низкая). Ниже 30 — коррупция усиливает урон от ЛЮБОЙ атаки на ×1.5, ниже 50 — на ×1.2. Коррумпированные чиновники не могут эффективно противостоять кризису.",
   "ИЧР": "Индекс человеческого развития от 0 до 1: учитывает доходы, образование и продолжительность жизни. Выше 0.9 → страна восстанавливается на +50% быстрее: развитые институты и квалифицированные кадры быстро стабилизируют экономику.",
-  "Энергоимпорт": "Доля потребляемой энергии, которую страна закупает за рубежом. Выше 40% — критическая уязвимость: Энергетический шантаж наносит урон ×2.0. Ниже 40% — страна относительно независима.",
+  "Энергоимпорт": "Доля потребляемой энергии, которую страна закупает за рубежом. Выше 40% — критическая уязвимость для Энергетического шантажа. Ниже 40% — страна относительно независима.",
 };
 
 function getHealthColor(h) {
@@ -963,8 +963,8 @@ function GamePage({ nickname }) {
                       <td style={{ color: c.unemployment > 10 ? '#ffaa66' : '#cde' }}>{c.unemployment}%</td>
                       <td style={{ color: c.digitalization > 75 ? '#da77f2' : '#cde' }}>{c.digitalization}%</td>
                       <td
-                        style={{ color: c.corruption_perception_index < 35 ? '#ff8888' : c.corruption_perception_index < 50 ? '#ffaa66' : '#cde' }}
-                        title={c.corruption_perception_index < 35 ? 'Высокая коррупция → урон атак ×1.5' : c.corruption_perception_index < 50 ? 'Средняя коррупция → урон атак ×1.2' : 'Низкая коррупция — защита в норме'}
+                        style={{ color: c.corruption_perception_index < 30 ? '#ff8888' : c.corruption_perception_index < 50 ? '#ffaa66' : '#cde' }}
+                        title={c.corruption_perception_index < 30 ? 'Высокая коррупция → урон атак ×1.5' : c.corruption_perception_index < 50 ? 'Средняя коррупция → урон атак ×1.2' : 'Низкая коррупция — защита в норме'}
                       >{c.corruption_perception_index}</td>
                       <td
                         style={{ color: c.human_development_index > 0.9 ? '#51cf66' : c.human_development_index > 0.8 ? '#8bc34a' : '#cde' }}
@@ -972,7 +972,7 @@ function GamePage({ nickname }) {
                       >{c.human_development_index.toFixed(2)}</td>
                       <td
                         style={{ color: c.energy_import > 0.4 ? '#ff8888' : c.energy_import > 0.2 ? '#ffaa66' : '#cde' }}
-                        title={c.energy_import > 0.4 ? `Критическая зависимость — Энергошантаж ×2.0` : c.energy_import > 0.2 ? 'Умеренный импорт — небольшая уязвимость' : 'Низкая энергозависимость — шантаж неэффективен'}
+                        title={c.energy_import > 0.4 ? `Критическая зависимость — уязвима к Энергошантажу` : c.energy_import > 0.2 ? 'Умеренный импорт — небольшая уязвимость' : 'Низкая энергозависимость — шантаж неэффективен'}
                       >{Math.round(c.energy_import * 100)}%</td>
                     </tr>
                   );

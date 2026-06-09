@@ -112,7 +112,6 @@ class Attack:
         nums = [v for v in self.multipliers.values() if isinstance(v, (int, float))]
         base_max = max(nums, default=1.0)
         if self.attack_type == 'trade_blockade':
-            # при высокой зависимости И малом числе партнёров множители перемножаются
             base_max = (self.multipliers.get('high_dependency', 1.1)
                         * self.multipliers.get('concentrated_partners', 1.3))
         return base_max
@@ -263,7 +262,7 @@ class GlobalEconomyGame:
             low_reserves = reserves < 200
 
             if high_debt and low_reserves:
-                mult = attack.multipliers.get('high_debt_low_reserves', 2.2)
+                mult = attack.multipliers.get('high_debt_low_reserves', 1.65)
                 explanation = LESSONS['currency_crisis']['success_high_debt_low_reserves']['text'].format(
                     debt=round(debt_ratio, 1), reserves=round(reserves, 1))
                 lesson = LESSONS['currency_crisis']['success_high_debt_low_reserves']['lesson']
@@ -287,11 +286,11 @@ class GlobalEconomyGame:
             high_t = attack.multipliers.get('conditions', {}).get('high_threshold', 80)
 
             if debt_ratio > critical_t:
-                mult = attack.multipliers.get('critical_debt', 2.1)
+                mult = attack.multipliers.get('critical_debt', 1.25)
                 explanation = LESSONS['debt_spiral']['critical']['text'].format(debt=round(debt_ratio, 1))
                 lesson = LESSONS['debt_spiral']['critical']['lesson']
             elif debt_ratio > high_t:
-                mult = attack.multipliers.get('high_debt', 1.4)
+                mult = attack.multipliers.get('high_debt', 1.2)
                 explanation = LESSONS['debt_spiral']['high']['text'].format(debt=round(debt_ratio, 1))
                 lesson = LESSONS['debt_spiral']['high']['lesson']
             else:
@@ -306,17 +305,17 @@ class GlobalEconomyGame:
             concentrated = num_partners <= 3
 
             if high_dependency and concentrated:
-                mult = attack.multipliers.get('high_dependency', 1.8) * attack.multipliers.get('concentrated_partners', 1.5)
+                mult = attack.multipliers.get('high_dependency', 1.1) * attack.multipliers.get('concentrated_partners', 1.3)
                 explanation = LESSONS['trade_blockade']['success_high_dependency']['text'].format(
                     dependency=round(trade_dependency, 1)) + f" Всего {num_partners} партнёра — нет диверсификации."
                 lesson = LESSONS['trade_blockade']['success_high_dependency']['lesson']
             elif high_dependency:
-                mult = attack.multipliers.get('high_dependency', 1.8)
+                mult = attack.multipliers.get('high_dependency', 1.1)
                 explanation = LESSONS['trade_blockade']['success_high_dependency']['text'].format(
                     dependency=round(trade_dependency, 1))
                 lesson = LESSONS['trade_blockade']['success_high_dependency']['lesson']
             elif concentrated:
-                mult = attack.multipliers.get('concentrated_partners', 1.5)
+                mult = attack.multipliers.get('concentrated_partners', 1.3)
                 explanation = LESSONS['trade_blockade']['success_concentrated']['text'].format(partners=num_partners)
                 lesson = LESSONS['trade_blockade']['success_concentrated']['lesson']
             else:
@@ -334,7 +333,7 @@ class GlobalEconomyGame:
                 explanation = f"Страна экспортирует {round(energy_export_pct, 1)}% энергии — эмбарго контрпродуктивно."
                 lesson = "Экспортёры энергии не просто устойчивы — они сами могут использовать энергию как оружие."
             elif energy_import_pct > 40:
-                mult = attack.multipliers.get('high_import', 2.0)
+                mult = attack.multipliers.get('high_import', 1.1)
                 explanation = LESSONS['energy_embargo']['success_high_import']['text'].format(
                     import_value=round(energy_import_pct, 1))
                 lesson = LESSONS['energy_embargo']['success_high_import']['lesson']
