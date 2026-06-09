@@ -113,8 +113,8 @@ class Attack:
         base_max = max(nums, default=1.0)
         if self.attack_type == 'trade_blockade':
             # при высокой зависимости И малом числе партнёров множители перемножаются
-            base_max = (self.multipliers.get('high_dependency', 1.5)
-                        * self.multipliers.get('concentrated_partners', 1.4))
+            base_max = (self.multipliers.get('high_dependency', 1.1)
+                        * self.multipliers.get('concentrated_partners', 1.3))
         return base_max
 
 class GlobalEconomyGame:
@@ -555,7 +555,6 @@ class GlobalEconomyGame:
             explanation = "Операция провалена — цель устояла."
 
         damage = int(attack.base_damage * multiplier) if success else int(attack.base_damage * 0.3)
-        damage = min(30, damage)
         target.take_damage(damage)
         self.ip -= effective_cost
 
