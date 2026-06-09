@@ -108,6 +108,15 @@ class Attack:
         self.tooltip = data.get('tooltip', '')
         self.multipliers = data.get('multipliers', {})
 
+    def max_multiplier(self) -> float:
+        nums = [v for v in self.multipliers.values() if isinstance(v, (int, float))]
+        base_max = max(nums, default=1.0)
+        if self.attack_type == 'trade_blockade':
+            # при высокой зависимости И малом числе партнёров множители перемножаются
+            base_max = (self.multipliers.get('high_dependency', 1.8)
+                        * self.multipliers.get('concentrated_partners', 1.5))
+        return base_max
+
 class GlobalEconomyGame:
     # Центральный класс игры: страны, атаки, механика кризиса и сохранение прогресса.
     # Насколько присутствие в альянсе повышает риск раскрытия при атаке
@@ -685,9 +694,7 @@ class GlobalEconomyGame:
                     'min_damage': max(1, int(a.base_damage * min(
                         (v for v in a.multipliers.values() if isinstance(v, (int, float))), default=1.0
                     ))),
-                    'max_damage': int(a.base_damage * max(
-                        (v for v in a.multipliers.values() if isinstance(v, (int, float))), default=1.0
-                    )),
+                    'max_damage': int(a.base_damage * a.max_multiplier()),
                     'risk': a.base_risk,
                     'tooltip': a.tooltip
                 }
