@@ -691,13 +691,14 @@ class GlobalEconomyGame:
                     'name': a.name,
                     'cost': a.base_cost,
                     'damage': a.base_damage,
-                    'min_damage': max(1, int(a.base_damage * min(
-                        (v for v in a.multipliers.values() if isinstance(v, (int, float))), default=1.0
-                    ))),
-                    'max_damage': min(30, int(a.base_damage * a.max_multiplier() * (
-                        max(c.get_corruption_multiplier() for c in self.countries.values())
-                        if a.attack_type not in ['cyber_attack', 'social_unrest'] else 1.0
-                    ))),
+                    'min_damage': min(
+                        int(a.base_damage * self._get_attack_multiplier_and_explanation(a, c)[0])
+                        for c in self.countries.values()
+                    ),
+                    'max_damage': max(
+                        int(a.base_damage * self._get_attack_multiplier_and_explanation(a, c)[0])
+                        for c in self.countries.values()
+                    ),
                     'risk': a.base_risk,
                     'tooltip': a.tooltip
                 }
