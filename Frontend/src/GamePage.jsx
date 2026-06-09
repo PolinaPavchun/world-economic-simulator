@@ -198,12 +198,12 @@ function GamePage({ nickname }) {
   // Режим подсказок — показывает уязвимости и эффективность атак, сохраняется между сессиями.
   const [hintMode, setHintMode] = useState(() => localStorage.getItem("hintMode") !== "off");
 
-  // Состояние и рефы для pan/zoom карты.
+  // Pan/zoom карты: x/y — смещение в пикселях, scale — масштаб (0.5–5).
   const [mapTransform, setMapTransform] = useState({ x: 0, y: 0, scale: 1 });
-  const isPanningRef = useRef(false);
-  const panStartRef = useRef({ x: 0, y: 0 });
-  const panOriginRef = useRef({ x: 0, y: 0 });
-  const dragDistRef = useRef(0);
+  const isPanningRef = useRef(false);   // true пока зажата кнопка мыши
+  const panStartRef = useRef({ x: 0, y: 0 });   // координаты мыши в начале drag
+  const panOriginRef = useRef({ x: 0, y: 0 });  // смещение карты в начале drag
+  const dragDistRef = useRef(0);  // пройденное расстояние — если > 5px, клик по стране не засчитывается
 
   const handleMapMouseDown = (e) => {
     if (e.button !== 0) return;
@@ -232,7 +232,8 @@ function GamePage({ nickname }) {
 
   const resetMapView = () => setMapTransform({ x: 0, y: 0, scale: 1 });
 
-  // Подключаем wheel как non-passive — иначе preventDefault не работает в Chrome/Safari.
+  // wheel регистрируем вручную с passive:false — React-обработчики всегда пассивные,
+  // из-за чего preventDefault() игнорируется и страница прокручивается вместо зума.
   const mapWrapperRef = useRef(null);
   useEffect(() => {
     const el = mapWrapperRef.current;
@@ -854,7 +855,7 @@ function GamePage({ nickname }) {
                   <div className="attack-name">{a.name}</div>
                   <div className="attack-stats">
                     <span>IP: {cost}</span>
-                    <span>Урон: ~{a.damage}</span>
+                    <span>Урон: {a.min_damage ?? a.damage}–{a.max_damage ?? a.damage}</span>
                   </div>
                   {a.tooltip && <div className="attack-tooltip-text">{a.tooltip}</div>}
                   {hintMode && cond && (

@@ -682,6 +682,12 @@ class GlobalEconomyGame:
                     'name': a.name,
                     'cost': a.base_cost,
                     'damage': a.base_damage,
+                    'min_damage': max(1, int(a.base_damage * min(
+                        (v for v in a.multipliers.values() if isinstance(v, (int, float))), default=1.0
+                    ))),
+                    'max_damage': int(a.base_damage * max(
+                        (v for v in a.multipliers.values() if isinstance(v, (int, float))), default=1.0
+                    )),
                     'risk': a.base_risk,
                     'tooltip': a.tooltip
                 }
