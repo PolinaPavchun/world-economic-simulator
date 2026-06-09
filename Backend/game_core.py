@@ -555,6 +555,7 @@ class GlobalEconomyGame:
             explanation = "Операция провалена — цель устояла."
 
         damage = int(attack.base_damage * multiplier) if success else int(attack.base_damage * 0.3)
+        damage = min(30, damage)
         target.take_damage(damage)
         self.ip -= effective_cost
 
@@ -694,7 +695,10 @@ class GlobalEconomyGame:
                     'min_damage': max(1, int(a.base_damage * min(
                         (v for v in a.multipliers.values() if isinstance(v, (int, float))), default=1.0
                     ))),
-                    'max_damage': int(a.base_damage * a.max_multiplier()),
+                    'max_damage': min(30, int(a.base_damage * a.max_multiplier() * (
+                        max(c.get_corruption_multiplier() for c in self.countries.values())
+                        if a.attack_type not in ['cyber_attack', 'social_unrest'] else 1.0
+                    ))),
                     'risk': a.base_risk,
                     'tooltip': a.tooltip
                 }
