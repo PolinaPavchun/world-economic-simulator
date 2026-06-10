@@ -25,8 +25,8 @@ function computeAttackConditions(attack, country) {
     const debt = Math.round(country.debt / country.gdp * 100);
     const res = Math.round(country.foreign_reserves);
     if (debt > 80 && res < 200) return { canUse: true, reason: `Долг ${debt}% + резервы $${res}млрд — двойная уязвимость` };
-    if (debt > 80) return { canUse: true, reason: `Долг ${debt}% ВВП — высокая долговая нагрузка` };
-    if (res < 200) return { canUse: true, reason: `Резервы $${res}млрд — слабая защита валюты` };
+    if (debt > 80) return { canUse: true, reason: `Долг ${debt}% ВВП — высокая нагрузка, резервы $${res}млрд` };
+    if (res < 200) return { canUse: true, reason: `Резервы $${res}млрд — слабая защита, долг ${debt}%` };
     return { canUse: false, reason: `Долг ${debt}%, резервы $${res}млрд — защита достаточна` };
   }
   if (attack.name === "Долговая спираль") {
