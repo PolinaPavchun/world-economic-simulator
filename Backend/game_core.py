@@ -401,7 +401,7 @@ class GlobalEconomyGame:
             explanation = "Атака применена."
             lesson = ""
 
-        if attack.attack_type not in ['cyber_attack', 'social_unrest']:
+        if attack.attack_type not in ['cyber_attack', 'social_unrest', 'energy_embargo']:
             corruption_mult = country.get_corruption_multiplier()
             if corruption_mult > 1.0:
                 mult *= corruption_mult
