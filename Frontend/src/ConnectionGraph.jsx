@@ -23,16 +23,23 @@ function buildAllEdges(countries) {
   const edges = [];
   const names = new Set(countries.map(c => c.name));
 
-  const tradeSet = new Set();
+  // Торговля: собираем обе доли (A→B и B→A), визуальная толщина = максимум из двух
+  const tradeEdgesMap = {};
   countries.forEach(c => {
     Object.entries(c.trade_partners || {}).forEach(([partner, share]) => {
       if (!names.has(partner)) return;
       const key = [c.name, partner].sort().join('|');
-      if (tradeSet.has(key)) return;
-      tradeSet.add(key);
-      edges.push({ source: c.name, target: partner, type: 'trade', strength: share, directed: false });
+      if (!tradeEdgesMap[key])
+        tradeEdgesMap[key] = { source: c.name, target: partner, type: 'trade', directed: false, shares: {} };
+      tradeEdgesMap[key].shares[c.name] = share;
     });
+  });
+  Object.values(tradeEdgesMap).forEach(e => {
+    const maxShare = Math.max(...Object.values(e.shares));
+    edges.push({ ...e, strength: maxShare });
+  });
 
+  countries.forEach(c => {
     // Долг: стрелка от кредитора к должнику
     Object.entries(c.external_debt_holders || {}).forEach(([creditor, amount]) => {
       if (names.has(creditor))
@@ -47,6 +54,49 @@ function buildAllEdges(countries) {
   });
 
   return edges;
+}
+
+// Возвращает список уязвимостей страны для отображения в боковой панели.
+function getVulnerabilityTags(c) {
+  const tags = [];
+  const debtRatio = Math.round(c.debt / c.gdp * 100);
+  const dep = Math.round(Object.values(c.trade_partners || {}).reduce((a, b) => a + b, 0) * 100);
+  const cnt = Object.keys(c.trade_partners || {}).length;
+
+  if (debtRatio > 100)
+    tags.push({ label: `Долг ${debtRatio}% ВВП`, color: '#e74c3c', hint: 'Долговая спираль и Валютная атака — максимальный урон' });
+  else if (debtRatio > 80)
+    tags.push({ label: `Долг ${debtRatio}% ВВП`, color: '#e67e22', hint: 'Финансовые атаки эффективны' });
+
+  if (c.foreign_reserves < 200)
+    tags.push({ label: `Резервы $${Math.round(c.foreign_reserves)}млрд`, color: '#e74c3c', hint: 'Нет защиты валюты — Валютная атака сработает даже без большого долга' });
+
+  if (c.energy_import > 0.4)
+    tags.push({ label: `Энергоимпорт ${Math.round(c.energy_import * 100)}%`, color: '#f39c12', hint: 'Критическая зависимость — Энергетический шантаж эффективен' });
+
+  if (dep > 50 && cnt <= 3)
+    tags.push({ label: `Торговля ${dep}% / ${cnt} партн.`, color: '#e74c3c', hint: 'Торговые санкции смертельны: высокая концентрация и мало партнёров' });
+  else if (dep > 50)
+    tags.push({ label: `Торговля ${dep}%`, color: '#e67e22', hint: 'Торговые санкции эффективны: высокая зависимость' });
+  else if (cnt <= 3)
+    tags.push({ label: `${cnt} торг. партнёра`, color: '#e67e22', hint: 'Торговые санкции эффективны: нет диверсификации' });
+
+  if (c.inflation > 8 && c.unemployment > 10)
+    tags.push({ label: `Инфл. ${c.inflation}% + безраб. ${c.unemployment}%`, color: '#ff6644', hint: 'Социальный взрыв — двойной триггер' });
+  else if (c.inflation > 8)
+    tags.push({ label: `Инфляция ${c.inflation}%`, color: '#ff8844', hint: 'Социальный взрыв сработает' });
+  else if (c.unemployment > 10)
+    tags.push({ label: `Безработица ${c.unemployment}%`, color: '#ff8844', hint: 'Социальный взрыв сработает' });
+
+  if (c.digitalization > 75)
+    tags.push({ label: `Цифровизация ${c.digitalization}%`, color: '#da77f2', hint: 'Кибератака максимальна: высокая IT-зависимость' });
+
+  if (c.corruption_perception_index < 30)
+    tags.push({ label: `ИКВ ${c.corruption_perception_index} (высокая коррупция)`, color: '#aaaaaa', hint: 'Коррупция усиливает урон финансовых и торговых атак на ×1.5' });
+  else if (c.corruption_perception_index < 50)
+    tags.push({ label: `ИКВ ${c.corruption_perception_index} (коррупция)`, color: '#888888', hint: 'Коррупция усиливает урон финансовых и торговых атак на ×1.2' });
+
+  return tags;
 }
 
 function healthColor(h) {
@@ -328,6 +378,20 @@ export function ConnectionGraph({ countries, selectedCountry, onSelectCountry })
                 </div>
               </div>
 
+              <div className="graph-vuln-section">
+                <div className="graph-section-label">Уязвимости</div>
+                {getVulnerabilityTags(selectedData).length === 0
+                  ? <div className="graph-no-edges" style={{ color: '#2ecc71' }}>Нет явных уязвимостей</div>
+                  : getVulnerabilityTags(selectedData).map((t, i) => (
+                    <div key={i} className="graph-vuln-tag" title={t.hint}>
+                      <span className="vuln-dot" style={{ background: t.color }} />
+                      <span className="vuln-label" style={{ color: t.color }}>{t.label}</span>
+                      <span className="vuln-hint">{t.hint}</span>
+                    </div>
+                  ))
+                }
+              </div>
+
               <div className="graph-edges-section">
                 <div className="graph-section-label">Связи ({selectedEdges.length})</div>
                 {selectedEdges.length === 0
@@ -335,17 +399,24 @@ export function ConnectionGraph({ countries, selectedCountry, onSelectCountry })
                   : selectedEdges.map((e, i) => {
                     const isOut = e.source === selectedCountry;
                     const other = isOut ? e.target : e.source;
-                    // Подпись направления связи в зависимости от её типа
+                    // Для торговли показываем долю выбранной страны, а не ту что была записана первой
+                    const displayShare = e.type === 'trade'
+                      ? (e.shares?.[selectedCountry] ?? e.strength)
+                      : e.strength;
                     let dirLabel = '';
                     if (e.type === 'energy') dirLabel = isOut ? 'поставляет в' : 'получает от';
                     else if (e.type === 'debt') dirLabel = isOut ? 'кредитует' : 'должен';
-                    else dirLabel = 'торгует с';
+                    else {
+                      if (displayShare > 0.5) dirLabel = 'критически зависит от';
+                      else if (displayShare > 0.2) dirLabel = 'крупный партнёр:';
+                      else dirLabel = 'торгует с';
+                    }
                     return (
                       <div key={i} className="graph-edge-row">
                         <span className="edge-type-dot" style={{ background: CONN_COLORS[e.type] }} />
                         <span className="edge-dir-label">{dirLabel}</span>
                         <span className="edge-partner">{other}</span>
-                        <span className="edge-strength" style={{ color: CONN_COLORS[e.type] }}>{Math.round(e.strength * 100)}%</span>
+                        <span className="edge-strength" style={{ color: CONN_COLORS[e.type] }}>{Math.round(displayShare * 100)}%</span>
                       </div>
                     );
                   })
