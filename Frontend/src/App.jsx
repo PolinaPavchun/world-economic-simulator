@@ -1,7 +1,7 @@
 // App.jsx — экран входа и регистрации.
 // После успешного входа показывает GamePage.
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { API } from "./api";          // адрес бэкенда
 import "./App.css";                   // стили экрана входа
 import GamePage from "./GamePage";    // игровая страница после входа
@@ -17,12 +17,22 @@ async function hashPassword(password) {
 
 function App() {
   // Хранит данные формы и состояние сессии.
-  const [nickname, setNickname] = useState("");
+  const [nickname, setNickname] = useState(() => localStorage.getItem("wes_nickname") || "");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
+
+  // При загрузке страницы восстанавливаем сессию по сохранённому никнейму.
+  useEffect(() => {
+    const saved = localStorage.getItem("wes_nickname");
+    if (!saved) return;
+    fetch(`${API}/game/state?nickname=${encodeURIComponent(saved)}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data?.ip !== undefined) setLoggedIn(true); })
+      .catch(() => {});
+  }, []);
 
   const handleRegister = async () => {
     // Отправляет никнейм и хэш пароля на сервер для создания аккаунта.
@@ -56,6 +66,7 @@ function App() {
       });
       const data = await response.json();
       if (response.ok) {
+        localStorage.setItem("wes_nickname", nickname);
         setLoggedIn(true);
         setShowTutorial(true);
         setMessage("");

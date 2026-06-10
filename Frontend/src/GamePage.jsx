@@ -827,7 +827,7 @@ function GamePage({ nickname }) {
             </p>
           </div>
           <ConnectionGraph countries={countries} selectedCountry={selectedCountry}
-            onSelectCountry={name => setSelectedCountry(name)} />
+            onSelectCountry={name => setSelectedCountry(name)} hintMode={hintMode} />
         </div>
       )}
 

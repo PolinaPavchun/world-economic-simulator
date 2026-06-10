@@ -56,45 +56,21 @@ function buildAllEdges(countries) {
   return edges;
 }
 
-// Возвращает список уязвимостей страны для отображения в боковой панели.
+// Возвращает уязвимости, видимые в графе: только долг/резервы и энергия.
 function getVulnerabilityTags(c) {
   const tags = [];
   const debtRatio = Math.round(c.debt / c.gdp * 100);
-  const dep = Math.round(Object.values(c.trade_partners || {}).reduce((a, b) => a + b, 0) * 100);
-  const cnt = Object.keys(c.trade_partners || {}).length;
 
   if (debtRatio > 100)
-    tags.push({ label: `Долг ${debtRatio}% ВВП`, color: '#e74c3c', hint: 'Долговая спираль и Валютная атака — максимальный урон' });
+    tags.push({ label: `Долг ${debtRatio}% ВВП`, color: '#e74c3c', hint: 'Красные пунктиры на графе — кредиторы. Их давление делает финансовые атаки максимальными.' });
   else if (debtRatio > 80)
-    tags.push({ label: `Долг ${debtRatio}% ВВП`, color: '#e67e22', hint: 'Финансовые атаки эффективны' });
+    tags.push({ label: `Долг ${debtRatio}% ВВП`, color: '#e67e22', hint: 'Красные пунктиры на графе — кредиторы. Финансовые атаки эффективны.' });
 
   if (c.foreign_reserves < 200)
-    tags.push({ label: `Резервы $${Math.round(c.foreign_reserves)}млрд`, color: '#e74c3c', hint: 'Нет защиты валюты — Валютная атака сработает даже без большого долга' });
+    tags.push({ label: `Резервы $${Math.round(c.foreign_reserves)}млрд`, color: '#e74c3c', hint: 'Нечем защищать валюту. Валютная атака работает даже без большого долга.' });
 
   if (c.energy_import > 0.4)
-    tags.push({ label: `Энергоимпорт ${Math.round(c.energy_import * 100)}%`, color: '#f39c12', hint: 'Критическая зависимость — Энергетический шантаж эффективен' });
-
-  if (dep > 50 && cnt <= 3)
-    tags.push({ label: `Торговля ${dep}% / ${cnt} партн.`, color: '#e74c3c', hint: 'Торговые санкции смертельны: высокая концентрация и мало партнёров' });
-  else if (dep > 50)
-    tags.push({ label: `Торговля ${dep}%`, color: '#e67e22', hint: 'Торговые санкции эффективны: высокая зависимость' });
-  else if (cnt <= 3)
-    tags.push({ label: `${cnt} торг. партнёра`, color: '#e67e22', hint: 'Торговые санкции эффективны: нет диверсификации' });
-
-  if (c.inflation > 8 && c.unemployment > 10)
-    tags.push({ label: `Инфл. ${c.inflation}% + безраб. ${c.unemployment}%`, color: '#ff6644', hint: 'Социальный взрыв — двойной триггер' });
-  else if (c.inflation > 8)
-    tags.push({ label: `Инфляция ${c.inflation}%`, color: '#ff8844', hint: 'Социальный взрыв сработает' });
-  else if (c.unemployment > 10)
-    tags.push({ label: `Безработица ${c.unemployment}%`, color: '#ff8844', hint: 'Социальный взрыв сработает' });
-
-  if (c.digitalization > 75)
-    tags.push({ label: `Цифровизация ${c.digitalization}%`, color: '#da77f2', hint: 'Кибератака максимальна: высокая IT-зависимость' });
-
-  if (c.corruption_perception_index < 30)
-    tags.push({ label: `ИКВ ${c.corruption_perception_index} (высокая коррупция)`, color: '#aaaaaa', hint: 'Коррупция усиливает урон финансовых и торговых атак на ×1.5' });
-  else if (c.corruption_perception_index < 50)
-    tags.push({ label: `ИКВ ${c.corruption_perception_index} (коррупция)`, color: '#888888', hint: 'Коррупция усиливает урон финансовых и торговых атак на ×1.2' });
+    tags.push({ label: `Энергоимпорт ${Math.round(c.energy_import * 100)}%`, color: '#f39c12', hint: 'Оранжевые стрелки на графе — поставщики энергии. Перекрой их — и экономика встанет.' });
 
   return tags;
 }
@@ -107,7 +83,7 @@ function healthColor(h) {
 
 // Основной компонент графа связей
 // Принимает: countries (массив), selectedCountry (строка|null), onSelectCountry (коллбэк)
-export function ConnectionGraph({ countries, selectedCountry, onSelectCountry }) {
+export function ConnectionGraph({ countries, selectedCountry, onSelectCountry, hintMode = false }) {
   const [filterTypes, setFilterTypes] = useState(['energy']); // какие типы рёбер показывать
   const [positions, setPositions] = useState({});  // {страна: {x, y}} — позиции узлов после симуляции
   const [hovered, setHovered] = useState(null);    // название страны под курсором
@@ -378,19 +354,21 @@ export function ConnectionGraph({ countries, selectedCountry, onSelectCountry })
                 </div>
               </div>
 
-              <div className="graph-vuln-section">
-                <div className="graph-section-label">Уязвимости</div>
-                {getVulnerabilityTags(selectedData).length === 0
-                  ? <div className="graph-no-edges" style={{ color: '#2ecc71' }}>Нет явных уязвимостей</div>
-                  : getVulnerabilityTags(selectedData).map((t, i) => (
-                    <div key={i} className="graph-vuln-tag" title={t.hint}>
-                      <span className="vuln-dot" style={{ background: t.color }} />
-                      <span className="vuln-label" style={{ color: t.color }}>{t.label}</span>
-                      <span className="vuln-hint">{t.hint}</span>
-                    </div>
-                  ))
-                }
-              </div>
+              {hintMode && (
+                <div className="graph-vuln-section">
+                  <div className="graph-section-label">Уязвимости на графе</div>
+                  {getVulnerabilityTags(selectedData).length === 0
+                    ? <div className="graph-no-edges" style={{ color: '#2ecc71' }}>Нет финансовых / энергетических уязвимостей</div>
+                    : getVulnerabilityTags(selectedData).map((t, i) => (
+                      <div key={i} className="graph-vuln-tag" title={t.hint}>
+                        <span className="vuln-dot" style={{ background: t.color }} />
+                        <span className="vuln-label" style={{ color: t.color }}>{t.label}</span>
+                        <span className="vuln-hint">{t.hint}</span>
+                      </div>
+                    ))
+                  }
+                </div>
+              )}
 
               <div className="graph-edges-section">
                 <div className="graph-section-label">Связи ({selectedEdges.length})</div>
