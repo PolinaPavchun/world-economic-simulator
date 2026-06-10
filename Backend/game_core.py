@@ -178,7 +178,7 @@ class GlobalEconomyGame:
 
         self.attacks: List[Attack] = [Attack(a) for a in data['attacks']]
         self.global_params = data['global_params']
-        self.ip = 1000
+        self.ip = 1300
         self.reveal = 0
         self.day = 0
         self.game_over = False
