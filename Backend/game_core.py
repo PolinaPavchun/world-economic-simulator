@@ -611,8 +611,8 @@ class GlobalEconomyGame:
         self.ip = max(0, self.ip - self.global_params['daily_maintenance_cost'])
         # Давление спадает само по себе — просто ждать тоже стратегия
         self.reveal = max(0, self.reveal - self.global_params.get('reveal_decay', 2))
-        # Лимит квиза: 3 вопроса раз в 4 игровых дня
-        if self.day >= self.quiz_reset_day + 4:
+        # Лимит квиза: 3 вопроса раз в 12 игровых дней
+        if self.day >= self.quiz_reset_day + 12:
             self.quiz_today_count = 0
             self.quiz_reset_day = self.day
 
@@ -752,7 +752,7 @@ class GlobalEconomyGame:
     def get_quiz_question(self) -> dict:
         # Выбирает случайный незаданный вопрос из пула. Возвращает ошибку если лимит исчерпан.
         if self.quiz_today_count >= self.QUIZ_DAILY_LIMIT:
-            days_left = (self.quiz_reset_day + 4) - self.day
+            days_left = (self.quiz_reset_day + 12) - self.day
             return {'error': f'Лимит разведки исчерпан. Через {days_left} дн. откроется снова.'}
         pool = self._build_quiz_pool()
         unasked = [q for q in pool if q['question'] not in self.asked_quiz_ids]
